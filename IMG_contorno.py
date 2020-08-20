@@ -12,6 +12,7 @@ def auto_canny(image, sigma):
 	return edged
 IMGs = os.listdir('C:\IMG') #lista de nombres de archivos en la carpeta indicada
 sigma = 6
+h = 34
 if __name__ == '__main__':
     im = cv2.imread("C:\IMG\cam0001.jpg")
     fromCenter = False
