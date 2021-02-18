@@ -18,6 +18,8 @@ def deteccion(main_path, file_i, file_o, REC, sigma):
     imBlur = cv2.GaussianBlur(imCrop, (9, 9), 6, 6, cv2.BORDER_DEFAULT)
     # edges = cv2.Canny(imBlur,10,200)
     edges = auto_canny(imBlur, sigma)
+    #os.remove(main_path + file_o)
+    os.mkdir(main_path + file_o)
     cv2.imwrite(os.path.join(main_path + file_o, IMGs[0]), edges)
     for i in range(1, len(IMGs)):
         im = cv2.imread(main_path + file_i + '\\' + IMGs[i])
@@ -25,7 +27,7 @@ def deteccion(main_path, file_i, file_o, REC, sigma):
         imBlur = cv2.GaussianBlur(imCrop, (5, 5), 6, 6, cv2.BORDER_DEFAULT)
         # edges = cv2.Canny(imBlur,10,200)
         edges = auto_canny(imBlur, sigma)
-        cv2.imwrite(os.path.join(main_path + file_o, IMGs[i]), edges)
+        cv2.imwrite(edges, main_path + file_o + '/' + str(IMGs[i]))
     return IMGs
 
 
