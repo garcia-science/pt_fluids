@@ -60,6 +60,5 @@ def datos_3d(IMGS, PATH, FILE_OUT, filtro):
         T.append(t)
         X = np.arange(1, cols)
         Y = np.array(T)
-        X_grid, Y_grid = np.meshgrid(X, Y)
-        Z_np = np.array(PHI)
-    return PHI, T, X_grid, Y_grid, Z_np
+        Z = np.array(PHI)
+    return PHI, T, X, Y, Z
