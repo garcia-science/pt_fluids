@@ -6,18 +6,18 @@ from matplotlib import pyplot as plt
 if __name__ == '__main__':
     #Parametros de grilla
     dx = 0.1
-    dt = 0.1
+    dt = 0.01
     x_min = -10
     x_max = 10
-    T = 1000
+    T = 100
     Nx_pasos = (x_max - x_min)/dx
     Nt_pasos = T/dt
     print('tenemos '+str(Nx_pasos)+' pasos espaciales y '+str(Nt_pasos)+' pasos temporales')
 
     #Parametros ecuacion de fisher
-    eq = 'Fisher'
-    D = 0.0001
-    r = 0.01
+    eq = 'KdV'
+    D = 0.01
+    r = 0.001
     parametros = [D, r]
 
 
