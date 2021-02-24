@@ -8,6 +8,6 @@ if __name__ == '__main__':
     eqn, params, y_0 = parametros()
     h, T, n, x = variables(y_0)
     f = funcion(eqn, x, params)
-    y_t = RK4(f, x, h, T, eqn, params)
+    y_t = RK4_ODE(f, x, h, T, eqn, params)
     plt.plot(T, y_t)
     plt.show()

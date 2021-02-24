@@ -15,7 +15,7 @@ def deteccion(main_path, file_i, file_o, REC, sigma):
     im = cv2.imread(main_path + file_i + '\cam0001.jpg')
     rec = list(REC)
     imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
-    imBlur = cv2.GaussianBlur(imCrop, (9, 9), 6, 6, cv2.BORDER_DEFAULT)
+    imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
     # edges = cv2.Canny(imBlur,10,200)
     edges = auto_canny(imBlur, sigma)
     #os.remove(main_path + file_o)
@@ -24,10 +24,10 @@ def deteccion(main_path, file_i, file_o, REC, sigma):
     for i in range(1, len(IMGs)):
         im = cv2.imread(main_path + file_i + '\\' + IMGs[i])
         imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
-        imBlur = cv2.GaussianBlur(imCrop, (5, 5), 6, 6, cv2.BORDER_DEFAULT)
+        imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
         # edges = cv2.Canny(imBlur,10,200)
         edges = auto_canny(imBlur, sigma)
-        cv2.imwrite(edges, main_path + file_o + '/' + str(IMGs[i]))
+        cv2.imwrite(os.path.join(main_path + file_o, IMGs[i]), edges)
     return IMGs
 
 
