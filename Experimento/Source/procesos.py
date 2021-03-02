@@ -1,6 +1,7 @@
 import cv2
 from scipy.signal import lfilter, filtfilt
 import numpy as np
+from scipy import signal
 
 
 def filtro_array(n, funcion):
@@ -89,4 +90,18 @@ def proyeccion(PHI): #cuenta de más
     PHIT_proy = (1/cols)*PHIT_proy
     return PHIT_proy
 
-#def periodograma()
+def proyeccion_maximos(Z):
+    phi_max = np.argmax(Z[0, :])
+    frecuencias, power_density = signal.periodogram(Z[:, phi_max])
+    max_element = np.argmax(power_density)
+    periodo = 1 / frecuencias[max_element]
+    print("El periodo es "+str(periodo))
+    max_int = np.argmax(Z[0, 0:int(periodo)])
+    A = np.array([Z[int(max_int), :], Z[int(max_int), :]])
+    for i in range(len(Z[:, phi_max])):
+        if int(max_int * (2 + i / 2)) < len(Z[:, 0]):
+            A_i = np.array(np.absolute([Z[int(max_int * (2 + i / 2)), :]]))
+            A = np.append(A, A_i, axis=0)
+    A = A[1:-1]
+    PHIT_proy = proyeccion(A)
+    return PHIT_proy, frecuencias, power_density
