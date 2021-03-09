@@ -9,13 +9,11 @@ def plot_ZXT(X, Y, Z):
     fig.colorbar(surf, shrink=0.5, aspect=5)
     return fig
 def plot_XY(X, Y):
-    fig = plt.figure()
     plt.plot(X, Y)
     plt.xlabel(r'$x$ (Espacio)', fontsize=15)
     plt.ylabel(r'$\psi(x)$ (Altura)', fontsize=15)
     plt.title('Interesting Graph\nCheck it out')
     plt.grid(color='silver', linestyle='--', linewidth=0.5)
-    return fig
 
 def color_map(X, Y, Z):
     XX, YY = np.meshgrid(X, Y)

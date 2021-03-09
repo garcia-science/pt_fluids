@@ -13,7 +13,7 @@ def RK4_ODE(F, y, dt, t, eq, parametros):
     return y
 def RK4_PDE(PHI, dx, dt, Nt_pasos, Nx_pasos, eq, parametros, BC):
     for i in range(0, int(Nt_pasos)-1):
-        print('dt = '+str(i))
+        #print('dt = '+str(i))
         for j in range(0, int(Nx_pasos)-1):#poner if de condiciones de borde
             F = PDE_funcion(eq, PHI, i, j, dx, Nx_pasos, parametros, BC)
             k1 = F

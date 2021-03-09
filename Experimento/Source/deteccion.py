@@ -36,3 +36,10 @@ def ROI_select(path):
     fromCenter = False
     RECs = cv2.selectROI(im)
     return RECs
+
+def escala(path, cm):
+    dim = ROI_select(path)
+    DIM = list(dim)
+    cm_px = cm/DIM[2]
+    print(cm_px)
+    return cm_px
