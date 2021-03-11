@@ -19,22 +19,22 @@ if __name__ == '__main__':
 ############1D EQUATION PDE, FIRST ORDER############
     #Parametros de grilla
     dx = 0.1
-    dt = 0.01
+    dt = 0.00001
     x_min = -10
     x_max = 10
-    T = 100
+    T = 1
 
     #Parametros
     eq = 'KdV'
-    c_1 = 0.01
-    c_2 = 0.001
+    c_1 = 1
+    c_2 = 1
     parametros = [c_1, c_2]
 
 
     #Preparacion de grilla, condicion inicial y condiciones de borde
     Nx_pasos, Nt_pasos, x_grid, t_grid = grilla(x_min, x_max, T, dx, dt)
     BC = 'periodicas'
-    phi_inicial = (1 / np.cosh(x_grid))**2
+    phi_inicial = np.exp(-((x_grid)**2))
     PHI_inicial = campo_inicial(Nx_pasos, Nt_pasos, phi_inicial)
 
 

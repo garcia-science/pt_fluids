@@ -110,7 +110,6 @@ def proyeccion_maximos(Z):
 def proyeccion_desvesta(Z):
     N_x = len(Z[0, :])
     N_t = len(Z[:, 0])
-    print(N_x, N_t)
     mean = np.array([])
     std = np.array([])
     for i in range(N_x):
@@ -129,8 +128,6 @@ def envelope(X, Y, tipo):
             u_y.append(Y[i])
     u_x.append(X[-1])
     u_y.append(Y[-1])
-    print(u_x)
-    print(u_y)
     u_p = interp1d(u_x, u_y, kind = tipo,bounds_error = False, fill_value=0.0)
     #https://towardsdatascience.com/basic-curve-fitting-of-scientific-data-with-python-9592244a2509
     q_u = []

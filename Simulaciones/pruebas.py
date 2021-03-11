@@ -6,61 +6,64 @@ from Source.preparacion import *
 
 if __name__ == '__main__':
     #Parametros de grilla
-    dx = 0.01
+    dx = 0.5
     dt = 0.01
     c = 1
-    C = c*(dt/dx)
-    x_min = -10
-    x_max = 10
+    x_min = -50
+    x_max = 50
     L = x_max - x_min
-    T = 20
+    T = 200
     Nx, Nt, x_grid, t_grid = grilla(x_min, x_max, T, dx, dt)
-    print(Nx)
-    print(Nt)
-    u_min = u_max = 0
+    Nx = int(Nx)
+    Nt = int(Nt)
+    U = np.zeros((Nx, Nt))
+    V = np.zeros((Nx, Nt))
+    U_init = np.sin(2 * 2 * np.pi * x_grid / L) #posicion sinosidal
+    U_init = 0 * x_grid #posicion cero
+    #U_init = np.exp(- x_grid ** 2) #posicion gaussiana
 
+    #V_init = 0 * x_grid #velocidad cero
+    V_init = np.exp(- x_grid ** 2) #velocidad gaussiana
 
-    #I_x = np.sin(2 * np.pi * x_grid / L)
-    I_x = 100*np.exp(- x_grid ** 2)
-    U = I_x.tolist()
-    U_final = [U]
-    A = [0]*int(Nx)
-    for j in range(int(Nx) - 1):
-        if j == 1:
-            A[j] = U[j] - 0.5 * C ** 2 * (U[j + 1] - 2 * U[j] + u_min)
-        elif j == int(Nx) - 2:
-            A[j] = U[j] - 0.5 * C ** 2 * (u_max - 2 * U[j] + U[j - 1])
-        elif j == 0:
-            A[j] = u_min
-        elif j == int(Nx) - 1:
-            A[j] = u_max
+    U[:, 0] = U_init
+    V[:, 0] = V_init
+    U_left = U_right = 0
+    V_left = V_right = 0
+    def funciones(i, j, U, V, Nx, U_left, U_right, V_left, V_right, c):
+        if i == 0:
+            F = V_left
+            G = 0
+        elif i == 1:
+            F = V[i, j]
+            G = (c ** 2) * (U[i + 1, j] - 2 * U[i, j] + U_left)
+        elif i == Nx - 1:
+            F = V_right
+            G = 0
+        elif i == Nx - 2:
+            F = V[i, j]
+            G = (c ** 2) * (U_right - 2 * U[i, j] + U[i - 1, j])
         else:
-            A[j] = U[j] - 0.5 * C ** 2 * (U[j + 1] - 2 * U[j] + U[j - 1])
-    U_final.append(A)
-    print(U_final)
-    for i in range(1, int(Nt) - 1):
-        j = 0
-        while j <= int(Nx) - 1:
-            #print(str(i)+", "+str(j))
-            if j == 1:
-                A[j] = -1 * U_final[i - 1][j] + 2 * U_final[i][j] + C ** 2 * (
-                            U_final[i][j + 1] - 2 * U_final[i][j] + u_min)
-            elif j == int(Nx) - 2:
-                A[j] = -1 * U_final[i - 1][j] + 2 * U_final[i][j] + C ** 2 * (
-                            u_max - 2 * U_final[i][j] + U_final[i][j - 1])
-            elif j == 0:
-                A[j] = u_min
-            elif j == int(Nx) - 1:
-                A[j] = u_max
-            else:
-                A[j] = -1 * U_final[i - 1][j] + 2 * U_final[i][j] + C ** 2 * (
-                        U_final[i][j + 1] - 2 * U_final[i][j] + U_final[i][j - 1])
-            j += 1
-        U_final.append(A)
-        #print(U_final[i][:])
-    U_f = np.array(U_final)
-    print(np.shape(U_f))
-    fig = color_map(x_grid, t_grid, U_f)
+            F = V[i, j]
+            G = (c ** 2) * (U[i + 1, j] - 2 * U[i, j] + U[i - 1, j])
+        return F, G
+
+    for j in range(0, Nt - 1):
+        print('dt = ' + str(j))
+        for i in range(0, Nx - 1):
+            F, G = funciones(i, j, U, V, Nx, U_left, U_right, V_left, V_right, c)
+            k1 = F
+            m1 = G
+            k2 = F + 0.5 * dt * k1
+            m2 = G + 0.5 * dt * k1
+            k3 = F + 0.5 * dt * k2
+            m3 = G + 0.5 * dt * k2
+            k4 = F + dt * k3
+            m4 = G + dt * k3
+
+            V[i, j + 1] = V[i, j] + dt * (m1 + 2 * m2 + 2 * m3 + m4) / 6
+            U[i, j + 1] = U[i, j] + dt * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    fig_1 = color_map(x_grid, t_grid, np.transpose(U))
+    #fig_2 = color_map(x_grid, t_grid, np.transpose(V))
     plt.show()
 
 
@@ -69,5 +72,8 @@ if __name__ == '__main__':
 
 
 
-    #PSI_inicial = campo_inicial(Nx_pasos, Nt_pasos, psi_0_2)
+
+
+
+
 
