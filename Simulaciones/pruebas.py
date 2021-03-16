@@ -31,28 +31,11 @@ if __name__ == '__main__':
     ####### DINAMICA #########
     campos_finales = RK4_PDE(campos, bordes, parametros, dx, dt, Nx, Nt, eq, x_grid, t_grid)
     #A = campos_finales[0]**2 + campos_finales[1]**2
+
+    ####### VISUALIZACION #########
     #fig_1 = color_map(x_grid, t_grid, campos_finales[0])
     #plt.show()
-
-    x = x_grid
-
-    fig = plt.figure()
-
-    lines = plt.plot([])
-    line = lines[0]
-    #other setuo
-    plt.xlim(-L/2, L/2)
-    plt.ylim(-1.1, 10)
-    def animate(frame):
-        y = campos_finales[0][100 * frame, :]
-        line.set_data((x, y))
-        #update plot
-
-    anim = FuncAnimation(fig, animate, frames=int(Nt/100), interval=20)
-    anim.save('basic_animation.gif', fps=100)
-    #video = anim.to_html5_video()
-    #html = display.HTML(video)
-    #display.display(html)
+    anim = animacion(campos_finales[0], x_grid, Nt, L, [-6, 6], guardar='si', nombre='anim_01')
     plt.show()
 
 

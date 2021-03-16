@@ -7,57 +7,56 @@ from Source.deteccion import *
 from Source.procesos import *
 import cv2
 import os
+from scipy.optimize import curve_fit
 
 if __name__ == '__main__':
     ############ DETECTOR DE CONTORNOS ###########
+
     #recs = ROI_select(reference_file)
-    cm_px = escala(reference_file, 4)
-
-
     #deteccion(path, file_in, file_out, recs, sigma = 0.37)
 
-    ############## IMAGENES A NUMPY ##############
-    #IMGs = os.listdir(path + file_out)
-    #PHI, T, X, Y, Z = datos_3d(IMGs, path, file_out, 100, filtro = 'si')
-
     ########## GUARDADO Y CARGA DE DATOS #########
-    #datos = [X, Y, Z, PHI]
+    #IMGs = os.listdir(path + file_out)
+    #X, T, PHI = datos_3d(IMGs, path, file_out, 100, filtro = 'no')
+    #datos = [X, T, PHI]
     #guardar_txt(datos)
+    [X, T, PHI] = cargar_txt(3)
 
-    [X, Y, Z, PHI] = cargar_txt(4)
-    FILT = np.zeros((len(Z[:, 0]), len(Z[0, :])))
-    for i in range(len(Z[0, :])):
-        filtered = filtro_array(10, Z[:, i])
-        FILT[:, i] = filtered
-
-
-
-
-    ########### PROYECCION DE MAXIMOS ############
-    PHIT_proy, frec, power_density = proyeccion_maximos(FILT)
+    ########## PROCESOS Y OTROS #########
+    PHI_filtrado = filtro_superficie(PHI, 5, 'YX')
+    mean, std = proyeccion_desvesta(PHI_filtrado)
+    PHI_filtrado = nivel(PHI_filtrado, mean)
+    PHI_proy, frec, power_density = proyeccion_maximos(PHI_filtrado)
+    std = (PHI_proy[np.argmax(PHI_proy)] / std[np.argmax(std)]) * std
+    envelope, puntos_x, puntos_y = envelope(X, std, 'linear')
 
 
-    ##########ENSAYOS###########
 
-    mean, std = proyeccion_desvesta(FILT)
-    envelope, puntos = envelope(X, std, 'linear')
+    #################### CONVERSION A CM ##################
+    arrays = [X, PHI_proy, std, envelope]
+    [X, PHI_proy, std, envelope] = resize_arrays(4, arrays)
 
 
-    X_cm = np.array(resize_array(cm_px, X))
-    envelope_cm = np.array(resize_array(cm_px, envelope))
-    std_cm = np.array(resize_array(cm_px, std))
-    PHIT_proy_cm = np.array(resize_array(cm_px, PHIT_proy))
-    mean_cm = np.array(resize_array(cm_px, mean))
-    E = envelope_cm - 1 * mean_cm
-    S = std_cm - 1 * mean_cm
-    PH = PHIT_proy_cm - 1 * mean_cm
-    '''ARREGLAR CORRECCION DE NIVEL, PROBLEMA CON ALTURA, Y OTROS'''
+    #################### CONVERSION A CM ##################
+    def func(x, a, b, c):
+        return a * np.exp(-(x - b) ** 2 / (2 * c) ** 2)
+    plt.plot(X, PHI_proy, label='data')
+    popt, pcov = curve_fit(func, X, envelope)
+    plt.plot(X, func(X, *popt), 'r-',
+             label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend()
+    plt.show()
+
     #################### PLOTEO ##################
     #fig1 = plot_ZXT(X, Y, Z)
-    #fig2 = color_map(X, Y, FILT)
-    plot_XY(X_cm, E)
-    plot_XY(X_cm, S)
-    plot_XY(X_cm, PH)
-    #plot_XY(X_cm, mean_cm)
+    #fig2 = color_map(X, T, PHI_filtrado)
+    plot_XY(X, PHI_proy)
+    plot_XY(X, std)
+    plot_XY(X, envelope)
     #fig4 = DOS(frec, power_density, "log", "Periodograma")
     plt.show()
+
+
+

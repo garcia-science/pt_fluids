@@ -4,13 +4,44 @@ import numpy as np
 from scipy import signal
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
+from Source.deteccion import *
+from Input.enrutador import *
+
 
 def filtro_array(n, funcion):
-    n = 10  # the larger n is, the smoother curve will be
+    # the larger n is, the smoother curve will be
     b = [1.0 / n] * n
     a = 1
     phi_filtered = filtfilt(b, a, funcion)
     return phi_filtered
+
+
+def filtro_superficie(Z, intensidad, sentido):
+    FILT = np.zeros((len(Z[:, 0]), len(Z[0, :])))
+    if sentido == 'X':
+        for i in range(len(Z[:, 0])):
+            filtered = filtro_array(intensidad, Z[i, :])
+            FILT[i, :] = filtered
+    elif sentido == 'Y':
+        for i in range(len(Z[0, :])):
+            filtered = filtro_array(intensidad, Z[:, i])
+            FILT[:, i] = filtered
+    elif sentido == 'XY':
+        for i in range(len(Z[:, 0])):
+            filtered = filtro_array(intensidad, Z[i, :])
+            FILT[i, :] = filtered
+        for i in range(len(Z[0, :])):
+            filtered = filtro_array(intensidad, FILT[:, i])
+            FILT[:, i] = filtered
+    elif sentido == 'YX':
+        for i in range(len(Z[0, :])):
+            filtered = filtro_array(intensidad, Z[:, i])
+            FILT[:, i] = filtered
+        for i in range(len(Z[:, 0])):
+            filtered = filtro_array(intensidad, FILT[i, :])
+            FILT[i, :] = filtered
+    return FILT
+
 
 def phi_t(main_path, IMGs , file_o, filtro, l, m, nivel_0, nivel_f):
     img = cv2.imread(main_path + file_o + '\\' + IMGs[l], 0)
@@ -37,7 +68,7 @@ def phi_t(main_path, IMGs , file_o, filtro, l, m, nivel_0, nivel_f):
                 j = j - 1
             if j == 1 and n == 0:
                 if not phi:
-                    phi_i = 0.45
+                    phi_i = 0.5
                     print("tengo un hoyo al principio")
                     phi.append(phi_i)
                     j = j - 1
@@ -50,20 +81,12 @@ def phi_t(main_path, IMGs , file_o, filtro, l, m, nivel_0, nivel_f):
     for i in range(cols - 1):
         x.append(i)
     phi.reverse()
-    if filtro == 'si':
-        phi_F = filtro_array(m, phi)
-    elif filtro == 'no':
-        phi_F = np.array(phi)
     if nivel_0 == 0:
-        nivel_0 = phi_F[0]
-        nivel_f = phi_F[-1]
-    phi_F = phi_F - [nivel_0] * (cols - 1)  # Centrando en el cero
-    pend = (nivel_f - nivel_0)/cols #Corrector de nivel
-    recta = []
-    for a in x:
-        recta.append(a * pend)
-    phi_F = phi_F - np.array(recta)
-    return phi_F, cols, nivel_0, nivel_f
+        nivel_0 = phi[0]
+        nivel_f = phi[-1]
+    phi = [i - nivel_0 for i in phi]  # Centrando en el cero
+    return phi, cols, nivel_0, nivel_f
+
 
 def datos_3d(IMGS, PATH, FILE_OUT, m, filtro):
     PHI = []
@@ -79,7 +102,8 @@ def datos_3d(IMGS, PATH, FILE_OUT, m, filtro):
     X = np.arange(1, cols)
     Y = np.array(T)
     Z = np.array(PHI)
-    return PHI, T, X, Y, Z
+    return X, Y, Z
+
 
 def proyeccion(PHI):
     PHIT = PHI.transpose()
@@ -90,12 +114,12 @@ def proyeccion(PHI):
     PHIT_proy = (1/cols)*PHIT_proy
     return PHIT_proy
 
+
 def proyeccion_maximos(Z):
     phi_max = np.argmax(Z[0, :])
     frecuencias, power_density = signal.periodogram(Z[:, phi_max])
     max_element = np.argmax(power_density)
     periodo = 1 / frecuencias[max_element]
-    print("El periodo es "+str(periodo))
     max_int = np.argmax(Z[0, 0:int(periodo)])
     max_int = int(max_int)
     A = np.array([Z[max_int, :], Z[max_int, :]])
@@ -107,6 +131,7 @@ def proyeccion_maximos(Z):
     PHIT_proy = proyeccion(A)
     return PHIT_proy, frecuencias, power_density
 
+
 def proyeccion_desvesta(Z):
     N_x = len(Z[0, :])
     N_t = len(Z[:, 0])
@@ -117,7 +142,9 @@ def proyeccion_desvesta(Z):
             mean = np.append(mean, mean_i)
             std_i = np.array([np.std(Z[:, i])])
             std = np.append(std, std_i) #falta factr multiplicativo para esto
+    std = std - std[0]
     return mean, std
+
 
 def envelope(X, Y, tipo):
     u_x = [X[0]]
@@ -129,15 +156,26 @@ def envelope(X, Y, tipo):
     u_x.append(X[-1])
     u_y.append(Y[-1])
     u_p = interp1d(u_x, u_y, kind = tipo,bounds_error = False, fill_value=0.0)
-    #https://towardsdatascience.com/basic-curve-fitting-of-scientific-data-with-python-9592244a2509
     q_u = []
     for k in range(0, len(Y)):
         q_u.append(u_p(k))
-    return q_u, u_p
+    return q_u, u_x, u_y
 
-def resize_array(cm_px, array):
-    array_cm = [i * cm_px for i in array]
-    return array_cm
+
+def resize_arrays(cm, arrays):
+    arrays_cm = []
+    cm_px = escala(reference_file, 4)
+    for j in range(len(arrays)):
+        array_cm = [i * cm_px for i in arrays[j]]
+        arrays_cm.append(array_cm)
+    return arrays_cm
+
+
+def nivel(Z, mean):
+    for i in range(len(Z[:, 0])):
+        Z[i, :] = Z[i, :] - mean
+    return Z
+
 
 
 
