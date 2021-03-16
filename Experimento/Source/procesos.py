@@ -4,9 +4,9 @@ import numpy as np
 from scipy import signal
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
-from Source.deteccion import *
-from Input.enrutador import *
-
+from Experimento.Source.deteccion import *
+from Experimento.Input.enrutador import *
+from scipy.optimize import curve_fit
 
 def filtro_array(n, funcion):
     # the larger n is, the smoother curve will be
@@ -175,6 +175,24 @@ def nivel(Z, mean):
     for i in range(len(Z[:, 0])):
         Z[i, :] = Z[i, :] - mean
     return Z
+
+
+def gaussian_fit(X, Y, dominio_out):
+    def gaussian(x, a, b, c):
+        return a * np.exp(-(x - b) ** 2 / (2 * c) ** 2)
+    popt, pcov = curve_fit(gaussian, X, Y)
+    fit = gaussian(dominio_out, *popt)
+    return fit, popt
+
+
+def fit_gauss_sin(X, Y):
+    def gauss_sin(x, a, b, c, d):
+        fun = (a * np.exp(-((x - b) / c) ** 2)) * (np.sin(d * x / 2)) ** 2
+        return fun
+    popt, pcov = curve_fit(gauss_sin, X, Y)
+    fit = gauss_sin(X, *popt)
+    return fit, popt
+
 
 
 

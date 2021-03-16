@@ -1,11 +1,13 @@
-from Input.parametros import parametros
 from Input.variables import *
 from Source.ODE import *
 from Experimento.Visualizacion.tres_dimensiones import *
 from Source.RK4 import *
-import numpy as np
 from matplotlib import pyplot as plt
 from Source.preparacion import *
+from Input.condiciones_iniciales import *
+from Input.fuentes import *
+from Input.parametros import *
+from matplotlib.animation import FuncAnimation
 
 if __name__ == '__main__':
 ############1D EQUATION ODE, FIRST ORDER############
@@ -16,34 +18,31 @@ if __name__ == '__main__':
     #plt.plot(T, y_t)
     #plt.show()
 
-############1D EQUATION PDE, FIRST ORDER############
-    #Parametros de grilla
-    dx = 0.1
-    dt = 0.00001
-    x_min = -10
-    x_max = 10
-    T = 1
+############1D EQUATION PDE############
+    ####### INICIALIZACION #######
+    eq = 'pndls'
+    bordes = 'periodic'
+    fuente = 'gaussian'
+    dx, dt, x_min, x_max, L, T = iniciar_PDE(eq)
+    Nx, Nt, x_grid, t_grid = grilla(x_min, x_max, T, dx, dt)
 
-    #Parametros
-    eq = 'KdV'
-    c_1 = 1
-    c_2 = 1
-    parametros = [c_1, c_2]
+    ####### PARAMETROS Y FUENTES #########
+    fuentes = fuente_pde(x_grid, t_grid, Nx, Nt, 'gaussian')
+    fig_1 = color_map(x_grid, t_grid, fuentes, guardar = 'no', nombre = 'no', titulo = 'Perfil de Forzamiento', xlabel=r'$x$ (Espacio)', ylabel=r'$t$ (tiempo)')
+    plt.show()
+    parametros = parametros_PDE(eq, fuentes)
 
+    ####### CONDICIONES INICIALES #########
+    U_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.001, [1, -15, 10])
+    V_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.001, [0, 0])
+    condiciones_iniciales = [U_init, V_init]
+    campos = campos_iniciales(Nt, Nx, condiciones_iniciales)
 
-    #Preparacion de grilla, condicion inicial y condiciones de borde
-    Nx_pasos, Nt_pasos, x_grid, t_grid = grilla(x_min, x_max, T, dx, dt)
-    BC = 'periodicas'
-    phi_inicial = np.exp(-((x_grid)**2))
-    PHI_inicial = campo_inicial(Nx_pasos, Nt_pasos, phi_inicial)
+    ####### DINAMICA #########
+    campos_finales = RK4_PDE(campos, bordes, parametros, dx, dt, Nx, Nt, eq, x_grid, t_grid)
+    #A = campos_finales[0]**2 + campos_finales[1]**2
 
-
-    #EVOLUCIÓN TEMPORAL
-    PHI = RK4_PDE(PHI_inicial, dx, dt, Nt_pasos, Nx_pasos, eq, parametros, BC)
-
-    #PLOTEO
-    #XX, TT = np.meshgrid(x_grid, t_grid)
-    #fig = plot_ZXT(x_grid, t_grid, PHI)
-    fig = color_map(x_grid, t_grid, PHI_inicial)
-    #plt.plot(T, y_t)
+    ####### VISUALIZACION #########
+    #fig_1 = color_map(x_grid, t_grid, campos_finales[0], guardar = 'no', nombre = 'no', titulo = 'Diagrama espacio-temporal ', xlabel=r'$x$ (Espacio)', ylabel=r'$t$ (tiempo)')
+    anim = animacion(campos_finales[0], x_grid, Nt, L, [-2, 2], guardar='si', nombre='/anim_01', titulo='Animación PDE', xlabel=r'$x$ (Espacio)', ylabel=r'$t$ (tiempo)')
     plt.show()

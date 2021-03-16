@@ -21,6 +21,7 @@ if __name__ == '__main__':
     #datos = [X, T, PHI]
     #guardar_txt(datos)
     [X, T, PHI] = cargar_txt(3)
+    X = np.array([i - X[-1] / 2 for i in X])
 
     ########## PROCESOS Y OTROS #########
     PHI_filtrado = filtro_superficie(PHI, 5, 'YX')
@@ -29,33 +30,19 @@ if __name__ == '__main__':
     PHI_proy, frec, power_density = proyeccion_maximos(PHI_filtrado)
     std = (PHI_proy[np.argmax(PHI_proy)] / std[np.argmax(std)]) * std
     envelope, puntos_x, puntos_y = envelope(X, std, 'linear')
-
-
-
-    #################### CONVERSION A CM ##################
-    arrays = [X, PHI_proy, std, envelope]
-    [X, PHI_proy, std, envelope] = resize_arrays(4, arrays)
-
+    fit, popt = fit_gauss_sin(X, std)
 
     #################### CONVERSION A CM ##################
-    def func(x, a, b, c):
-        return a * np.exp(-(x - b) ** 2 / (2 * c) ** 2)
-    plt.plot(X, PHI_proy, label='data')
-    popt, pcov = curve_fit(func, X, envelope)
-    plt.plot(X, func(X, *popt), 'r-',
-             label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.legend()
-    plt.show()
+    arrays = [X, PHI_proy, std, fit]
+    [X, PHI_proy, std, fit] = resize_arrays(5, arrays)
 
     #################### PLOTEO ##################
-    #fig1 = plot_ZXT(X, Y, Z)
-    #fig2 = color_map(X, T, PHI_filtrado)
-    plot_XY(X, PHI_proy)
-    plot_XY(X, std)
-    plot_XY(X, envelope)
-    #fig4 = DOS(frec, power_density, "log", "Periodograma")
+    #fig1 = plot_ZXT(X, Y, Z, guardar='no', nombre='datos_3D_01', titulo='Datos 3D')
+    #fig2 = color_map(X, Y, Z, guardar='no', nombre, titulo, xlabel=r'$x$ (Espacio)', ylabel=r'$\psi(x)$ (Altura)')
+    #plot_XY(X, envelope, guardar='no', nombre='', titulo='Gráfico interesante', xlabel=r'$x$ (Espacio)', ylabel=r'$\psi(x)$ (Altura)')
+    multiple_XY(X, [PHI_proy, std, fit], guardar='no', nombre='comparacion_01', titulo='Estandar v/s Fourier',
+                xlabel=r'$x$ (Espacio)', ylabel=r'$\psi(x)$ (Altura)')
+    #fig4 = DOS(frec, power_density, "log", "Periodograma",guardar='no', nombre='periodograma_01', titulo='Periodograma', xlabel=r'$\omega$ (Frecuencias)', ylabel=r'Intensidad')
     plt.show()
 
 

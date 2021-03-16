@@ -7,6 +7,8 @@ file_in = '\IMG'
 file_out = '\IMG_canned'
 reference_file = r'C:\Users\mnustes_science\PT_fluids\IMG'
 
+plot_path = 'Plots'
+
 
 
 def guardar_txt(array):
