@@ -186,12 +186,23 @@ def gaussian_fit(X, Y, dominio_out):
 
 
 def fit_gauss_sin(X, Y):
-    def gauss_sin(x, a, b, c, d):
-        fun = (a * np.exp(-((x - b) / c) ** 2)) * (np.sin(d * x / 2)) ** 2
+    def gauss_sin(x, a):
+        fun = a * np.exp(- 0.5 * ((x / 7) ** 2)) * (np.sin(2 * np.pi * x / 12)) ** 2
         return fun
     popt, pcov = curve_fit(gauss_sin, X, Y)
     fit = gauss_sin(X, *popt)
     return fit, popt
+
+
+def campos_ligeros(campos, n, Nt, Nx, T):
+    t_ligero = np.linspace(0, T, int(Nt / n))
+    campos_light = []
+    for k in range(len(campos)):
+        campo_ligero = np.zeros((int(Nt / n), Nx))
+        for i in range(0, len(campos[k][:, 0]) - 1, n):
+            campo_ligero[int(i / n), :] = campos[k][i, :]
+        campos_light.append(campo_ligero)
+    return campos_light, t_ligero
 
 
 

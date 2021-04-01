@@ -2,7 +2,7 @@ import numpy as np
 
 def condiciones_iniciales_pde(type, x_grid, Nx, L, amplitude, params):
     if type == 'zero':
-        U_init = amplitude * x_grid
+        U_init = amplitude * np.zeros(Nx)
     elif type == 'ones':
         U_init = amplitude * np.ones(Nx)
     elif type == 'sine':
@@ -31,4 +31,7 @@ def condiciones_iniciales_pde(type, x_grid, Nx, L, amplitude, params):
         U_init_1 = 3 * c_1 * (1 / np.cosh(np.sqrt(c_1 / 4) * (x_grid - centro_1))) ** 2
         U_init_2 = + 3 * c_2 * (1 / np.cosh(np.sqrt(c_2 / 4) * (x_grid - centro_2))) ** 2
         U_init = U_init_1 + U_init_2
+    elif type == 'soliton_pndls':
+        delta = params[0]
+        U_init = np.sqrt(2 * delta) * (1 / np.cosh(np.sqrt(delta) * x_grid))
     return U_init

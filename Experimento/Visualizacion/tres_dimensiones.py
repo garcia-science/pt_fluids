@@ -85,3 +85,16 @@ def multiple_XY(X, Ys, guardar, nombre, titulo, xlabel, ylabel):
     plt.grid(color='silver', linestyle='--', linewidth=0.5)
     if guardar == 'si':
         plt.savefig(plot_path + nombre)
+
+
+def color_map_for(X, Y, Z, guardar, path, file, nombre, titulo, xlabel, ylabel, z_name):
+    XX, YY = np.meshgrid(X, Y)
+    ax = plt.gca()
+    pcm = ax.pcolormesh(X, Y, Z, vmin=np.min(Z), vmax=np.max(Z), cmap='RdBu_r', shading='auto')
+    cbar = plt.colorbar(pcm, shrink=1)
+    cbar.set_label(z_name, rotation=0, fontsize=15)
+    plt.xlabel(xlabel, fontsize=15)
+    plt.ylabel(ylabel, fontsize=15)
+    plt.title(titulo)
+    if guardar == 'si':
+        plt.savefig(path + file + nombre)

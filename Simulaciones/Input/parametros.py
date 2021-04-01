@@ -12,7 +12,7 @@ def parametros_ODE():
 
 def parametros_PDE(eq, fuente):
     if eq == 'pndls':
-        parametros = [fuente, 1, 1, 1, 0.5, 0.1, 0.32] #[forzamiento, control, alpha, beta, gamma, mu, nu]
+        parametros = [fuente, 1, 1, 1, 0.28, 0.1, 0.32] #[forzamiento, control, alpha, beta, gamma, mu, nu]
     elif eq == 'wave':
         parametros = [5] #[c]
     elif eq == 'fisher':

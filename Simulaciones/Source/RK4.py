@@ -15,7 +15,8 @@ def RK4_ODE(F, y, dt, t, eq, parametros):
 
 def RK4_PDE(campos, bordes, parametros, dx, dt, Nx, Nt, eq, x_grid, t_grid):
     for i in range(Nt - 1):
-        print('dt = ' + str(i))
+        if i % int(1 / dt) == 0:
+            print(str(round((i / (Nt - 1)), 3) * 100)+' %')
         for j in range(Nx ):
             FUN = PDE_funciones(i, j, eq, campos, bordes, parametros, dx, Nx, Nt, x_grid, t_grid)
             K = [0, 0, 0, 0]

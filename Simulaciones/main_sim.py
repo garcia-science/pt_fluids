@@ -1,6 +1,7 @@
 from Input.variables import *
 from Source.ODE import *
 from Experimento.Visualizacion.tres_dimensiones import *
+from Experimento.Input.enrutador import *
 from Source.RK4 import *
 from matplotlib import pyplot as plt
 from Source.preparacion import *
@@ -35,14 +36,13 @@ if __name__ == '__main__':
     ####### CONDICIONES INICIALES #########
     U_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.001, [1, -15, 10])
     V_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.001, [0, 0])
-    condiciones_iniciales = [U_init, V_init]
-    campos = campos_iniciales(Nt, Nx, condiciones_iniciales)
+    campos = campos_iniciales(Nt, Nx, [U_init, V_init])
 
     ####### DINAMICA #########
     campos_finales = RK4_PDE(campos, bordes, parametros, dx, dt, Nx, Nt, eq, x_grid, t_grid)
-    #A = campos_finales[0]**2 + campos_finales[1]**2
+    A = campos_finales[0]**2 + campos_finales[1]**2
 
     ####### VISUALIZACION #########
-    #fig_1 = color_map(x_grid, t_grid, campos_finales[0], guardar = 'no', nombre = 'no', titulo = 'Diagrama espacio-temporal ', xlabel=r'$x$ (Espacio)', ylabel=r'$t$ (tiempo)')
-    anim = animacion(campos_finales[0], x_grid, Nt, L, [-2, 2], guardar='si', nombre='/anim_01', titulo='Animación PDE', xlabel=r'$x$ (Espacio)', ylabel=r'$t$ (tiempo)')
+    fig_1 = color_map(x_grid, t_grid, A, guardar = 'no', nombre = 'no', titulo = 'Diagrama espacio-temporal ', xlabel=r'$x$ (Espacio)', ylabel=r'$t$ (tiempo)')
+    #anim = animacion(campos_finales[0], x_grid, Nt, L, [-2, 2], guardar='si', nombre='/anim_01', titulo='Animación PDE', xlabel=r'$x$ (Espacio)', ylabel=r'$t$ (tiempo)')
     plt.show()
