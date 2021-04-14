@@ -32,3 +32,11 @@ def nombre_pndls(gamma, mu, nu):
     nu = nu.split('.')
     nombre = '\gmn' + '_' + gamma[0] + gamma[1] + '_' + mu[0] + mu[1] + '_' + nu[0] + nu[1]
     return nombre
+
+
+def nombre_pndls_bigaussian(gamma, mu, nu, sigma, dist):
+    gamma = gamma.split('.')
+    mu = mu.split('.')
+    nu = nu.split('.')
+    nombre = '\\bigaussian\gmn' + '_' + gamma[0] + gamma[1] + '_' + mu[0] + mu[1] + '_' + nu[0] + nu[1] +'\\sd_' + sigma + '_' + dist
+    return nombre

@@ -30,12 +30,14 @@ if __name__ == '__main__':
     PHI_proy, frec, power_density = proyeccion_maximos(PHI_filtrado)
     std = (PHI_proy[np.argmax(PHI_proy)] / std[np.argmax(std)]) * std
     envelope, puntos_x, puntos_y = envelope(X, std, 'linear')
-    fit, popt = fit_gauss_sin(X, std)
-    #fit, popt = gaussian_fit(X, std, X)
-    #################### CONVERSION A CM ##################
-    arrays = [X, PHI_proy, std, fit]
-    [X, PHI_proy, std, fit] = resize_arrays(5, arrays)
+    #fit, popt = fit_gauss_sin(X, std)
 
+    #fit, popt = gaussian_fit(X, std, X)}
+
+    #################### CONVERSION A CM ##################
+    [X, PHI_proy, std] = resize_arrays(4, [X, PHI_proy, std])
+    X = np.array(X)
+    fit, popt = fit_gauss_sin(X, std)
     #################### PLOTEO ##################
     #fig1 = plot_ZXT(X, Y, Z, guardar='no', nombre='datos_3D_01', titulo='Datos 3D')
     #fig2 = color_map(X, Y, Z, guardar='no', nombre, titulo, xlabel=r'$x$ (Espacio)', ylabel=r'$\psi(x)$ (Altura)')
