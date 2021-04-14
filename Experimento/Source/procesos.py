@@ -186,10 +186,15 @@ def gaussian_fit(X, Y, dominio_out):
 
 
 def fit_gauss_sin(X, Y):
-    def gauss_sin(x, a):
-        fun = a * np.exp(- 0.5 * ((x / 7) ** 2)) * (np.sin(2 * np.pi * x / 12)) ** 2
+    def gauss_sin(x, a, sigma, L):
+        fun = a * np.exp(- 0.5 * ((x / sigma) ** 2)) * (np.sin(2 * np.pi * x / L)) ** 2
         return fun
-    popt, pcov = curve_fit(gauss_sin, X, Y)
+    X = np.array(X)
+    Y = np.array(Y)
+    a_min = np.amax(Y)
+    sigma_max = 4 * np.amax(X)
+    L_max = 0.25 * sigma_max
+    popt, pcov = curve_fit(gauss_sin, X, Y, bounds=([a_min, 0, 0], [np.inf, sigma_max, L_max]))
     fit = gauss_sin(X, *popt)
     return fit, popt
 
