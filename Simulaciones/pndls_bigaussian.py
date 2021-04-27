@@ -33,7 +33,7 @@ if __name__ == '__main__':
             modulo = np.sqrt(campo_ligeros[0] ** 2 + campo_ligeros[1] ** 2)
             arg = np.arctan2(campo_ligeros[0], campo_ligeros[1])
 
-            sim_file = nombre_pndls_bigaussian(gamma, nu, sigma, distancia, fase)
+            sim_file = nombre_pndls_bigaussian(gamma, mu, nu, sigma, distancia, fase)
             #if os.path.exists(simulation_data_path + '\\mu=' + str(mu) + sim_file) == True:
             #    print('Este directorio ya existe, ¿deseas eliminarlo y continuar? (Y/N)')
             #    a = str(input())
@@ -41,8 +41,8 @@ if __name__ == '__main__':
             #        shutil.rmtree(simulation_data_path + sim_file)
             #    elif a == 'N' or 'n':
             #        sys.exit("Proceso terminado, cambie de carpeta")
-            os.makedirs(simulation_data_path + '\\mu=' + str(mu) + sim_file)
-            guardar_txt(simulation_data_path + '\\mu=' + str(mu), sim_file, x_grid=x_grid, t_grid=t_ligero,
+            os.makedirs(simulation_data_path + sim_file)
+            guardar_txt(simulation_data_path, sim_file, x_grid=x_grid, t_grid=t_ligero,
                         PHI_real=campo_ligeros[0], PHI_img=campo_ligeros[1], PHI_modulo=modulo, PHI_arg=arg)
 
-            visualizacion(x_grid, t_ligero, modulo, tipo='colormap', guardar='si', path=simulation_data_path + '\\mu=' + str(mu), file=sim_file, nombre='plot')
+            visualizacion(x_grid, t_ligero, modulo, tipo='colormap', guardar='si', path=simulation_data_path, file=sim_file, nombre='plot')

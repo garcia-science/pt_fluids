@@ -5,10 +5,10 @@ def iniciar_PDE(eq):
     if eq == 'pndls':
         dx = 0.5
         dt = 0.001
-        x_min = -240
-        x_max = 240
+        x_min = -100
+        x_max = 100
         l = x_max - x_min
-        t = 150
+        t = 1
     elif eq == 'wave':
         dx = 0.5
         dt = 0.0005

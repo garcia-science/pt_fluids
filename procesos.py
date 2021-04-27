@@ -56,20 +56,14 @@ def nombre_pndls_estandar(**kwargs):
     return nombre
 
 
-def nombre_pndls_bigaussian(gamma, nu, sigma, dist, fase):
+def nombre_pndls_bigaussian(gamma, mu, nu, sigma, dist, fase):
     gamma_st = str(round(float(gamma), 3))
-    nu_st = str(round((float(nu), 3)))
+    mu_st = str(round(float(mu), 3))
+    nu_st = str(round(float(nu), 3))
     sigma_st = str(round(float(sigma), 1))
     dist_st = str(round(float(dist), 1))
-    gamma_splited = gamma_st.split('.')
-    nu_splited = nu_st.split('.')
-    sigma_splited = sigma_st.split('.')
-    dist_splited = dist_st.split('.')
-    gamma_name = gamma_splited[0] + gamma_splited[1]
-    nu_name = nu_splited[0] + nu_splited[1]
-    sigma_name = sigma_splited[0] + sigma_splited[1]
-    dist_name = dist_splited[0] + dist_splited[1]
-    nombre = '\\bigaussian\gamma=' + gamma_name + '_nu=' + nu_name +'\\fase=' + fase +'\\sigma=' + sigma_name + '_distancia=' + dist_name
+    fase_st = str(round(fase / np.pi, 2)) + 'pi'
+    nombre = '\\bigaussian\\mu=' + mu_st + '\\gamma=' + gamma_st + '_nu=' + nu_st +'\\fase=' + fase_st +'\\sigma=' + sigma_st + '\\distancia=' + dist_st
     return nombre
 
 
