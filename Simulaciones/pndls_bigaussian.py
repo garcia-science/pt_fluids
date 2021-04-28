@@ -13,14 +13,14 @@ if __name__ == '__main__':
 
     for i in range(1):
         for j in range(1):
-            gamma = 0.225
-            mu = 0.15
-            nu = 0.15
+            gamma = 0.28
+            mu = 0.1
+            nu = 0.32
 
             sigma = 3 + i
-            distancia = 10 + 2 * j
+            distancia = 20 + j
             fase = np.pi
-            fuentes = fuente_pde(x_grid, Nx, Nt, source='gaussian', sigma=sigma, distancia=distancia, fase=fase)
+            fuentes = fuente_pde(x_grid, Nx, Nt, source=fuente, sigma=sigma, distancia=distancia, fase=fase)
 
             U_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.01)
             V_init = condiciones_iniciales_pde('zero', x_grid, Nx, L, 0.01)

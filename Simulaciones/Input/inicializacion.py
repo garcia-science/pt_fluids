@@ -5,10 +5,10 @@ def iniciar_PDE(eq):
     if eq == 'pndls':
         dx = 0.5
         dt = 0.001
-        x_min = -100
-        x_max = 100
+        x_min = -50
+        x_max = 50
         l = x_max - x_min
-        t = 1
+        t = 600
     elif eq == 'wave':
         dx = 0.5
         dt = 0.0005
@@ -36,7 +36,7 @@ def iniciar_PDE(eq):
 def grilla(x_min, x_max, t, dx, dt):
     Nx_pasos = (x_max - x_min) / dx
     Nt_pasos = t / dt
-    print('Hay' + str(Nx_pasos) + ' pasos espaciales y ' + str(Nt_pasos) + ' pasos temporales')
+    print('Hay ' + str(Nx_pasos) + ' pasos espaciales y ' + str(Nt_pasos) + ' pasos temporales')
     x_grid = np.linspace(x_min, x_max, int(Nx_pasos))
     t_grid = np.linspace(0, t, int(Nt_pasos))
     Nx_pasos = int(Nx_pasos)
