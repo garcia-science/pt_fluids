@@ -16,7 +16,6 @@ if __name__ == '__main__':
             gamma = 0.28
             mu = 0.1
             nu = 0.32
-
             sigma = 3 + i
             distancia = 20 + j
             fase = np.pi
@@ -25,11 +24,10 @@ if __name__ == '__main__':
             U_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.01)
             V_init = condiciones_iniciales_pde('zero', x_grid, Nx, L, 0.01)
             campos = campos_iniciales(Nt, Nx, [U_init, V_init])
-
             campos_finales = RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, control=1, gamma=gamma, mu=mu, nu=nu,
                                      forzamiento=fuentes)
-            campo_ligeros, t_ligero = campos_ligeros(campos_finales, 100, Nt, Nx, T)
 
+            campo_ligeros, t_ligero = campos_ligeros(campos_finales, 100, Nt, Nx, T)
             modulo = np.sqrt(campo_ligeros[0] ** 2 + campo_ligeros[1] ** 2)
             arg = np.arctan2(campo_ligeros[0], campo_ligeros[1])
 
