@@ -9,6 +9,13 @@ def iniciar_PDE(eq):
         x_max = 50
         l = x_max - x_min
         t = 600
+    elif eq == 'pndls_exp':
+        dx = 0.5
+        dt = 0.001
+        x_min = -240
+        x_max = 240
+        l = x_max - x_min
+        t = 600
     elif eq == 'wave':
         dx = 0.5
         dt = 0.0005

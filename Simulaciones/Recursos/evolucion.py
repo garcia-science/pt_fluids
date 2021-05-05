@@ -26,7 +26,8 @@ def RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, **kwargs):
         g = 9806.65
         n = kwargs['n']
         a = kwargs['forcing_amp']
-        w = kwargs['forcing_freq']
+        f = kwargs['forcing_freq']
+        w = 2 * f
         l_inyeccion = 2 * kwargs['sigma']
         d = kwargs['profundidad']
         k = 2 * np.pi * n / l_inyeccion

@@ -7,21 +7,21 @@ from Simulaciones.Recursos.evolucion import *
 
 if __name__ == '__main__':
     ####### INICIALIZACION #######
-    eq = 'pndls'
+    eq = 'pndls_exp'
     bordes = 'periodic'
     fuente = 'gaussian'
     dx, dt, x_min, x_max, L, T = iniciar_PDE(eq)
     Nx, Nt, x_grid, t_grid = grilla(x_min, x_max, T, dx, dt)
     sigma_forcing = (L / 3) / 2
-    fuentes = fuente_pde(x_grid, t_grid, Nx, Nt, sigma=sigma_forcing, dist=0, source='gaussian')
+    fuentes = fuente_pde(x_grid, Nx, Nt, source='gaussian', sigma=sigma_forcing)
 
     for i in range(1):
         for j in range(1):
             n = 4
-            a = 28.32
-            w = 0.62
-            d = 2
-            mu = 0.03
+            a = 2/3
+            f = 14.61
+            d = 20
+            mu = 0.14
 
             ####### CONDICIONES INICIALES #########
             U_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.001)
@@ -29,13 +29,13 @@ if __name__ == '__main__':
             campos = campos_iniciales(Nt, Nx, [U_init, V_init])
 
             ####### DINAMICA #########
-            campos_finales = RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, control=1, mu=mu, sigma=sigma_forcing, n=n, forcing_amp=a, forcing_freq=w, profundidad=d, forzamiento=fuentes)
+            campos_finales = RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, control=0.1, mu=mu, sigma=sigma_forcing, n=n, forcing_amp=a, forcing_freq=f, profundidad=d, forzamiento=fuentes)
 
             ####### DATOS #########
             campo_ligeros, t_ligero = campos_ligeros(campos_finales, 100, Nt, Nx, T)
             modulo = np.sqrt(campo_ligeros[0] ** 2 + campo_ligeros[1] ** 2)
             arg = np.arctan2(campo_ligeros[0], campo_ligeros[1])
-            sim_file = nombre_pndls_estandar(n=n, mu=mu, forcing_amp=a, forcing_freq=w, profundidad=d)
+            sim_file = nombre_pndls_estandar(n=n, mu=mu, forcing_amp=a, forcing_freq=f, profundidad=d)
             if os.path.exists(simulation_data_path + sim_file) == True:
                 print('Este archivo de CANNY ya existe, ¿desea eliminarlo y continuar? (y/n)')
                 a = str(input())

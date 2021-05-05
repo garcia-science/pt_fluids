@@ -2,7 +2,7 @@ import numpy as np
 
 
 def PDE_funciones(i, j, eq,  campos, bordes, dx, Nx, **kwargs):
-    if eq == 'pndls':
+    if eq == 'pndls' or 'pndls_exp':
         U = campos[0]
         V = campos[1]
         if bordes == 'periodic':
@@ -33,6 +33,8 @@ def PDE_funciones(i, j, eq,  campos, bordes, dx, Nx, **kwargs):
                 G = - control * ((gamma * forzamiento[i, j] + mu) * V[i, j] + nu * U[i, j] + (alpha * (1 / dx) ** 2) * (
                             U[i, j - 1] - 2 * U[i, j] + U[i, j + 1]) + beta * (U[i, j] ** 2 + V[i, j] ** 2) * U[i, j])
             FUN = [F, G]
+    #print('alpha=' + str(alpha) + ' beta=' + str(beta) + ' mu=' + str(mu) + ' gamma=' + str(gamma) + ' nu=' + str(
+    #           nu) + ' control=' + str(control))
     return FUN
 
 def funcion(eq, y, parametros):
