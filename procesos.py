@@ -16,6 +16,8 @@ from scipy.optimize import curve_fit
 
 
 def guardar_txt(path, file, **kwargs): # upgradear a diccionario para nombre de variables
+    if os.path.exists(path + file) == False:
+        os.makedirs(path + file)
     for key, value in kwargs.items():
         np.savetxt(path + file + '\\' + key +".txt", value)
 
@@ -78,43 +80,43 @@ def auto_canny(image, sigma):
     return edged
 
 
-def deteccion(main_path, file_i, file_o, REC, sigma):
-    IMGs = os.listdir(main_path + file_i)  # lista de nombres de archivos en la carpeta indicada
-    im = cv2.imread(main_path + file_i + '\cam0001.jpg')
+def deteccion(file_i, file_o, REC, sigma):
+    IMGs = os.listdir(file_i)  # lista de nombres de archivos en la carpeta indicada
+    im = cv2.imread(file_i + '\cam000000.jpg')
     rec = list(REC)
     imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
     imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
     edges = auto_canny(imBlur, sigma)
-    if os.path.exists(main_path + file_o) == True:
+    if os.path.exists(file_o) == True:
         print('Este archivo de CANNY ya existe, ¿desea eliminarlo y continuar? (y/n)')
         a = str(input())
         if a == 'y':
-            shutil.rmtree(main_path + file_o)
+            shutil.rmtree(file_o)
         elif a == 'n':
             sys.exit("Proceso terminado, cambie de carpeta")
 
-    os.makedirs(main_path + file_o)
-    cv2.imwrite(os.path.join(main_path + file_o, IMGs[0]), edges)
+    os.makedirs(file_o)
+    cv2.imwrite(os.path.join(file_o, IMGs[0]), edges)
     for i in range(1, len(IMGs)):
-        im = cv2.imread(main_path + file_i + '\\' + IMGs[i])
+        im = cv2.imread(file_i + '\\' + IMGs[i])
         imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
         imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
         # edges = cv2.Canny(imBlur,10,200)
         edges = auto_canny(imBlur, sigma)
-        cv2.imwrite(os.path.join(main_path + file_o, IMGs[i]), edges)
+        cv2.imwrite(os.path.join(file_o, IMGs[i]), edges)
     return IMGs
 
 
 def ROI_select(path):
-    im = cv2.imread(path + '\\cam0001.jpg')
+    im = cv2.imread(path + '\\cam000000.jpg')
     fromCenter = False
     RECs = cv2.selectROI(im)
     return RECs
 
 
 # IMAGENES A DATOS
-def phi_t(main_path, IMGs, file_o, l, nivel):
-    img = cv2.imread(main_path + file_o + '\\' + IMGs[l], 0)
+def phi_t(IMGs, file_o, l, nivel):
+    img = cv2.imread(file_o + '\\' + IMGs[l], 0)
     rows, cols = img.shape
     phi = []
     i = cols - 1
@@ -151,13 +153,12 @@ def phi_t(main_path, IMGs, file_o, l, nivel):
     return phi, cols, nivel
 
 
-def datos_3d(IMGS, PATH, FILE_OUT, nivel):
+def datos_3d(IMGS, FILE_OUT, nivel):
     PHI = []
     T = []
     N_imgs = len(IMGS)
     for i in range(1, N_imgs):
-        print(str(round((i / N_imgs) * 100, 1)) + '% procesado')
-        phi, cols, nivel = phi_t(PATH, IMGS, FILE_OUT, i, nivel)
+        phi, cols, nivel = phi_t(IMGS, FILE_OUT, i, nivel)
         t = [i]
         PHI.append(phi)
         T.append(t)

@@ -14,12 +14,15 @@ if __name__ == '__main__':
     Nx, Nt, x_grid, t_grid = grilla(x_min, x_max, T, dx, dt)
     sigma_forcing = (L / 3) / 2
     fuentes = fuente_pde(x_grid, Nx, Nt, source='gaussian', sigma=sigma_forcing)
-
+    visualizacion(x_grid, t_grid, fuentes, tipo='colormap', guardar='no', path=simulation_data_path, file='ola',
+                  nombre='plot')
+    #plt.show()
     for i in range(1):
         for j in range(1):
             n = 4
-            a = 2/3
-            f = 14.61
+            m = 1
+            a = 1/3
+            f = 14.8
             d = 20
             mu = 0.14
 
@@ -29,7 +32,7 @@ if __name__ == '__main__':
             campos = campos_iniciales(Nt, Nx, [U_init, V_init])
 
             ####### DINAMICA #########
-            campos_finales = RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, control=0.1, mu=mu, sigma=sigma_forcing, n=n, forcing_amp=a, forcing_freq=f, profundidad=d, forzamiento=fuentes)
+            campos_finales = RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, control=1, mu=mu, sigma=sigma_forcing, n=n, m=m, forcing_amp=a, forcing_freq=f, profundidad=d, forzamiento=fuentes)
 
             ####### DATOS #########
             campo_ligeros, t_ligero = campos_ligeros(campos_finales, 100, Nt, Nx, T)
@@ -37,7 +40,7 @@ if __name__ == '__main__':
             arg = np.arctan2(campo_ligeros[0], campo_ligeros[1])
             sim_file = nombre_pndls_estandar(n=n, mu=mu, forcing_amp=a, forcing_freq=f, profundidad=d)
             if os.path.exists(simulation_data_path + sim_file) == True:
-                print('Este archivo de CANNY ya existe, ¿desea eliminarlo y continuar? (y/n)')
+                print('Este archivo de ya existe, ¿desea eliminarlo y continuar? (y/n)')
                 a = str(input())
                 if a == 'y':
                     shutil.rmtree(simulation_data_path + sim_file)

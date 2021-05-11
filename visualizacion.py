@@ -83,7 +83,7 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
         Y = args[1]
         Z = args[2]
         ax = plt.gca()
-        pcm = ax.pcolormesh(X, Y, Z, vmin=np.min(Z), vmax=np.max(Z), cmap=cmap, shading='auto')
+        pcm = ax.pcolormesh(X, Y, Z, vmin=-40, vmax=40, cmap=cmap, shading='auto')
         cbar = plt.colorbar(pcm, shrink=1)
         cbar.set_label(zlabel, rotation=0, fontsize=15)
         plt.xlabel(xlabel, fontsize=15)

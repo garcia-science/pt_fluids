@@ -24,20 +24,24 @@ def RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, **kwargs):
         gamma = kwargs['gamma']
     elif 'nu' and 'gamma' and 'alpha' and 'beta' not in kwargs:
         g = 9806.65
+        b = 16
         n = kwargs['n']
+        m = kwargs['m']
         a = kwargs['forcing_amp']
         f = kwargs['forcing_freq']
-        w = 2 * f
+        w = f * np.pi
         l_inyeccion = 2 * kwargs['sigma']
         d = kwargs['profundidad']
-        k = 2 * np.pi * n / l_inyeccion
+        k_x = np.pi * n / l_inyeccion
+        k_y = np.pi * m / b
+        k = np.sqrt(k_x ** 2 + k_y ** 2)
         tau = np.tanh(k * d)
         GAMMA = 4 * w ** 2 * a
-        w_1 = np.sqrt(g * k * tau)
+        w_0 = np.sqrt(g * k * tau)
         alpha = (1 / (4 * k ** 2)) * (1 + k * d * ((1 - tau ** 2) / tau))
         beta = (k ** 2 / 64) * (6 * tau ** 2 - 5 + 16 ** tau ** (-2) - 9 * tau ** (-4))
         gamma = GAMMA / (4 * g)
-        nu = 0.5 * ((w / w_1) ** 2 - 1)
+        nu = 0.5 * ((w / w_0) ** 2 - 1)
     for i in range(Nt - 1):
         if i % int(1 / dt) == 0:
             print(str(round((i / (Nt - 1)), 3) * 100)+' %')
