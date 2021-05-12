@@ -10,10 +10,36 @@ from matplotlib import pyplot as plt
 from directorios import *
 from visualizacion import *
 from scipy.optimize import curve_fit
+from tkinter import *
+import tkinter as tk
+from tkinter import filedialog
+import os
 
 
 # NOMBRAR, GUARDAR Y CARGAR DATOS
 
+def crear_directorios_trabajo():
+    root = tk.Tk()
+    root.withdraw()
+
+    def crear_directorio(path):
+        if os.path.exists(path) == True:
+            print('Este archivo ya existe')
+
+        else:
+            os.makedirs(path)
+            print(path + 'creado')
+
+    detection_parent_file = filedialog.askdirectory(parent=root,
+                                                    initialdir='C:/',
+                                                    title='Detección multiple')
+    crear_directorio(detection_parent_file + '/mnustes_science/images/canned')
+    crear_directorio(detection_parent_file + '/mnustes_science/images/img_lab')
+    crear_directorio(detection_parent_file + '/mnustes_science/images/img_phantom')
+    crear_directorio(detection_parent_file + '/mnustes_science/experimental_data')
+    crear_directorio(detection_parent_file + '/mnustes_science/simulation_data')
+    main_directory = detection_parent_file + '/mnustes_science'
+    return
 
 def guardar_txt(path, file, **kwargs): # upgradear a diccionario para nombre de variables
     if os.path.exists(path + file) == False:
@@ -71,6 +97,74 @@ def nombre_pndls_bigaussian(gamma, mu, nu, sigma, dist, fase):
 
 # DETECCION
 
+def canny_prueba(sigma):
+    root = tk.Tk()
+    root.withdraw()
+    reference_image = filedialog.askopenfilename(parent=root,
+                                                    initialdir="E:\mnustes_science",
+                                                    title='Detección multiple')
+    print(str(reference_image))
+    im = cv2.imread(str(reference_image))
+    REC = cv2.selectROI(im)
+    rec = list(REC)
+    imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
+    imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
+    canned = auto_canny(imBlur, sigma)
+    cv2.imshow('Imagen de referencia', canned)
+    cv2.waitKey(delay=0)
+    cv2.destroyWindow('Imagen de referencia')
+
+
+def deteccion_contornos(tipo, sigma):
+    if tipo == 'multiple':
+        root = tk.Tk()
+        root.withdraw()
+        detection_parent_file = filedialog.askdirectory(parent=root,
+                                                        initialdir="E:\mnustes_science",
+                                                        title='Detección multiple')
+        if not detection_parent_file:
+            sys.exit('No se seleccionó ningún archivo')
+        os.chdir(detection_parent_file)
+        detection_files = os.listdir()
+        parent_file_name = os.path.basename(detection_parent_file)
+        print('Se va a procesar la carpeta ' + str(parent_file_name))
+        canned_path = 'E:\mnustes_science\images\canned'
+        datos_path = 'E:\mnustes_science\experimental_data'
+
+        reference_image = filedialog.askopenfilename(parent=root,
+                                                        initialdir=detection_files,
+                                                        title='Seleccionar imagen de referencia')
+        recs = ROI_select(reference_image)
+        for name in detection_files:
+            print('Procesando ' + str(name) + ' (' + str(detection_files.index(name)) + '/' + str(len(detection_files)) + ')')
+            deteccion(detection_parent_file + '\\' + name, canned_path + '\\' + parent_file_name + '\\' + name, recs, sigma)
+            IMGs = os.listdir(canned_path + '\\' + parent_file_name + '\\' + name)
+            X, T, PHI = datos_3d(IMGs, canned_path + '\\' + parent_file_name + '\\' + name, nivel='si')
+            guardar_txt(datos_path, '\\' + parent_file_name + '\\' + name, X=X, T=T, PHI=PHI)
+    elif tipo == 'single_file':
+        root = tk.Tk()
+        root.withdraw()
+        detection_file = filedialog.askdirectory(parent=root,
+                                                        initialdir="E:\mnustes_science",
+                                                        title='Selecciones el archivo para detección')
+        if not detection_file:
+            sys.exit('No se seleccionó ningún archivo')
+        os.chdir(detection_file)
+        parent_file_name = os.path.basename(detection_file)
+        print('Se va a procesar la carpeta ' + detection_file)
+        canned_path = 'E:\mnustes_science\images\canned'
+        datos_path = 'E:\mnustes_science\experimental_data'
+
+        reference_image = filedialog.askopenfilename(parent=root,
+                                                     initialdir=detection_file,
+                                                     title='Seleccionar imagen de referencia')
+        recs = ROI_select(reference_image)
+        deteccion(detection_file, canned_path + '\\single_file\\' + parent_file_name, recs,
+                  sigma)
+        IMGs = os.listdir(canned_path + '\\single_file\\' + parent_file_name)
+        X, T, PHI = datos_3d(IMGs, canned_path + '\\single_file\\' + parent_file_name, nivel='si')
+        guardar_txt(datos_path, '\\single_file\\' + parent_file_name + '\\', X=X, T=T, PHI=PHI)
+
 
 def auto_canny(image, sigma):
     v = np.median(image)
@@ -108,8 +202,7 @@ def deteccion(file_i, file_o, REC, sigma):
 
 
 def ROI_select(path):
-    im = cv2.imread(path + '\\cam000000.jpg')
-    fromCenter = False
+    im = cv2.imread(path)
     RECs = cv2.selectROI(im)
     return RECs
 

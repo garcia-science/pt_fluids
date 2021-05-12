@@ -1,6 +1,11 @@
-import numpy as np
+import tkinter as tk
+from tkinter import filedialog
+import os
+from procesos import *
+from visualizacion import *
 
-main_path = r'E:\mnustes_science'
+
+main_path = 'E:\mnustes_science'
 
 images_file = main_path + '\images'
 imgs_lab = images_file + '\img_lab'
@@ -13,3 +18,4 @@ data_file = '\e_data'
 
 simulation_data_path = main_path + '\simulation_data'
 #sim_file = '\s_data'
+
