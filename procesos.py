@@ -18,6 +18,25 @@ import os
 
 # NOMBRAR, GUARDAR Y CARGAR DATOS
 
+
+def select_file(datos_path):
+    root = tk.Tk()
+    root.withdraw()
+    carpeta = filedialog.askopenfilename(parent=root,
+                                      initialdir=datos_path,
+                                      title='Selecciones el archivo')
+    return carpeta
+
+
+def select_directory(datos_path):
+    root = tk.Tk()
+    root.withdraw()
+    carpeta = filedialog.askdirectory(parent=root,
+                                      initialdir=datos_path,
+                                      title='Selecciones la carpeta')
+    return carpeta
+
+
 def crear_directorios_trabajo():
     root = tk.Tk()
     root.withdraw()
@@ -28,7 +47,7 @@ def crear_directorios_trabajo():
 
         else:
             os.makedirs(path)
-            print(path + 'creado')
+            print(path + ' creado')
 
     detection_parent_file = filedialog.askdirectory(parent=root,
                                                     initialdir='C:/',
@@ -39,7 +58,7 @@ def crear_directorios_trabajo():
     crear_directorio(detection_parent_file + '/mnustes_science/experimental_data')
     crear_directorio(detection_parent_file + '/mnustes_science/simulation_data')
     main_directory = detection_parent_file + '/mnustes_science'
-    return
+    return main_directory
 
 def guardar_txt(path, file, **kwargs): # upgradear a diccionario para nombre de variables
     if os.path.exists(path + file) == False:
@@ -101,7 +120,7 @@ def canny_prueba(sigma):
     root = tk.Tk()
     root.withdraw()
     reference_image = filedialog.askopenfilename(parent=root,
-                                                    initialdir="E:\mnustes_science",
+                                                    initialdir="D:\mnustes_science",
                                                     title='Detección multiple')
     print(str(reference_image))
     im = cv2.imread(str(reference_image))
@@ -115,12 +134,30 @@ def canny_prueba(sigma):
     cv2.destroyWindow('Imagen de referencia')
 
 
+def canny_to_data():
+    canned_path = 'D:\mnustes_science\images\canned'
+    datos_path = 'D:\mnustes_science\experimental_data'
+    root = tk.Tk()
+    root.withdraw()
+    detection_file = filedialog.askdirectory(parent=root,
+                                                    initialdir=canned_path,
+                                                    title='Selecciones la carpeta canny')
+    if not detection_file:
+        sys.exit('No se seleccionó ninguna carpeta')
+    os.chdir(detection_file)
+    parent_file_name = os.path.basename(detection_file)
+    print('Se va a procesar la carpeta ' + detection_file)
+    IMGs = os.listdir(canned_path + '\\single_file\\' + parent_file_name)
+    X, T, PHI = datos_3d(IMGs, canned_path + '\\single_file\\' + parent_file_name, nivel='si')
+    guardar_txt(datos_path, '\\single_file\\' + parent_file_name + '\\', X=X, T=T, PHI=PHI)
+
+
 def deteccion_contornos(tipo, sigma):
     if tipo == 'multiple':
         root = tk.Tk()
         root.withdraw()
         detection_parent_file = filedialog.askdirectory(parent=root,
-                                                        initialdir="E:\mnustes_science",
+                                                        initialdir="D:\mnustes_science",
                                                         title='Detección multiple')
         if not detection_parent_file:
             sys.exit('No se seleccionó ningún archivo')
@@ -128,8 +165,8 @@ def deteccion_contornos(tipo, sigma):
         detection_files = os.listdir()
         parent_file_name = os.path.basename(detection_parent_file)
         print('Se va a procesar la carpeta ' + str(parent_file_name))
-        canned_path = 'E:\mnustes_science\images\canned'
-        datos_path = 'E:\mnustes_science\experimental_data'
+        canned_path = 'D:\mnustes_science\images\canned'
+        datos_path = 'D:\mnustes_science\experimental_data'
 
         reference_image = filedialog.askopenfilename(parent=root,
                                                         initialdir=detection_files,
@@ -145,15 +182,15 @@ def deteccion_contornos(tipo, sigma):
         root = tk.Tk()
         root.withdraw()
         detection_file = filedialog.askdirectory(parent=root,
-                                                        initialdir="E:\mnustes_science",
+                                                        initialdir="D:\mnustes_science",
                                                         title='Selecciones el archivo para detección')
         if not detection_file:
             sys.exit('No se seleccionó ningún archivo')
         os.chdir(detection_file)
         parent_file_name = os.path.basename(detection_file)
         print('Se va a procesar la carpeta ' + detection_file)
-        canned_path = 'E:\mnustes_science\images\canned'
-        datos_path = 'E:\mnustes_science\experimental_data'
+        canned_path = 'D:\mnustes_science\images\canned'
+        datos_path = 'D:\mnustes_science\experimental_data'
 
         reference_image = filedialog.askopenfilename(parent=root,
                                                      initialdir=detection_file,
@@ -176,7 +213,7 @@ def auto_canny(image, sigma):
 
 def deteccion(file_i, file_o, REC, sigma):
     IMGs = os.listdir(file_i)  # lista de nombres de archivos en la carpeta indicada
-    im = cv2.imread(file_i + '\cam000000.jpg')
+    im = cv2.imread(file_i + '/cam000000.jpg')
     rec = list(REC)
     imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
     imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
@@ -228,7 +265,6 @@ def phi_t(IMGs, file_o, l, nivel):
             if j == 1 and n == 0:
                 if not phi:
                     phi_i = 0.5 * rows
-                    print("tengo un hoyo al principio")
                     phi.append(phi_i)
                     j = j - 1
                 else:
@@ -262,6 +298,50 @@ def datos_3d(IMGS, FILE_OUT, nivel):
 
 
 # PROCESOS DE DATOS
+
+
+def field_envelopes(X, T, Z, carpeta):
+    def envelopes(s):
+        q_u = np.zeros(s.shape)
+        q_l = np.zeros(s.shape)
+        u_x = [0, ]
+        u_y = [s[0], ]
+        l_x = [0, ]
+        l_y = [s[0], ]
+        for k in range(1, len(s) - 1):
+            if (np.sign(s[k] - s[k - 1]) == 1) and (np.sign(s[k] - s[k + 1]) == 1):
+                u_x.append(k)
+                u_y.append(s[k])
+            if (np.sign(s[k] - s[k - 1]) == -1) and ((np.sign(s[k] - s[k + 1])) == -1):
+                l_x.append(k)
+                l_y.append(s[k])
+        u_x.append(len(s) - 1)
+        u_y.append(s[-1])
+        l_x.append(len(s) - 1)
+        l_y.append(s[-1])
+        u_p = interp1d(u_x, u_y, kind='linear', bounds_error=False, fill_value=0.0)
+        l_p = interp1d(l_x, l_y, kind='linear', bounds_error=False, fill_value=0.0)
+        for k in range(0, len(s)):
+            q_u[k] = u_p(k)
+            q_l[k] = l_p(k)
+        q_u = q_u.tolist()
+        q_l = q_l.tolist()
+        return q_u, q_l
+    A = np.zeros((len(T), len(X)))
+    B = np.zeros((len(T), len(X)))
+    for i in range(len(X)):
+        print(i)
+        s = Z[:, i]
+        q_u, q_l =envelopes(s)
+        A[:, i] = q_u
+        B[:, i] = q_l
+    guardar_txt(carpeta, '', A=A, B=B)
+    visualizacion(X, T, A, tipo='colormap', guardar='no', path=carpeta,
+                  file='', nombre='A_plot', cmap='seismic')
+    plt.close()
+    visualizacion(X, T, B, tipo='colormap', guardar='no', path=carpeta,
+                  file='', nombre='B_plot', cmap='seismic')
+    plt.close()
 
 
 def filtro_array(n, funcion):
