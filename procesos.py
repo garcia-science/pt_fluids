@@ -165,8 +165,8 @@ def deteccion_contornos(tipo, sigma):
         detection_files = os.listdir()
         parent_file_name = os.path.basename(detection_parent_file)
         print('Se va a procesar la carpeta ' + str(parent_file_name))
-        canned_path = 'D:\mnustes_science\images\canned'
-        datos_path = 'D:\mnustes_science\experimental_data'
+        canned_path = 'F:\mnustes_science\images\canned'
+        datos_path = 'F:\mnustes_science\experimental_data'
 
         reference_image = filedialog.askopenfilename(parent=root,
                                                         initialdir=detection_files,
@@ -176,31 +176,43 @@ def deteccion_contornos(tipo, sigma):
             print('Procesando ' + str(name) + ' (' + str(detection_files.index(name)) + '/' + str(len(detection_files)) + ')')
             deteccion(detection_parent_file + '\\' + name, canned_path + '\\' + parent_file_name + '\\' + name, recs, sigma)
             IMGs = os.listdir(canned_path + '\\' + parent_file_name + '\\' + name)
-            X, T, PHI = datos_3d(IMGs, canned_path + '\\' + parent_file_name + '\\' + name, nivel='si')
+            X, T, PHI = datos_3d(IMGs, canned_path + '\\' + parent_file_name + '\\' + name)
             guardar_txt(datos_path, '\\' + parent_file_name + '\\' + name, X=X, T=T, PHI=PHI)
     elif tipo == 'single_file':
         root = tk.Tk()
         root.withdraw()
+        zero_file = filedialog.askdirectory(parent=root,
+                                                        initialdir="F:\mnustes_science",
+                                                        title='Seleccione la carpeta del cero')
+        if not zero_file:
+            sys.exit('No se seleccionó ningún archivo')
+
         detection_file = filedialog.askdirectory(parent=root,
-                                                        initialdir="D:\mnustes_science",
-                                                        title='Selecciones el archivo para detección')
+                                                 initialdir="F:\mnustes_science",
+                                                 title='Seleccione la carpeta para detección')
         if not detection_file:
             sys.exit('No se seleccionó ningún archivo')
         os.chdir(detection_file)
         parent_file_name = os.path.basename(detection_file)
+        os.chdir(detection_file)
+        zero_name = os.path.basename(zero_file)
+        canned_path = 'F:\mnustes_science\images\canned'
+        datos_path = 'F:\mnustes_science\experimental_data'
         print('Se va a procesar la carpeta ' + detection_file)
-        canned_path = 'D:\mnustes_science\images\canned'
-        datos_path = 'D:\mnustes_science\experimental_data'
-
         reference_image = filedialog.askopenfilename(parent=root,
                                                      initialdir=detection_file,
                                                      title='Seleccionar imagen de referencia')
         recs = ROI_select(reference_image)
-        deteccion(detection_file, canned_path + '\\single_file\\' + parent_file_name, recs,
-                  sigma)
-        IMGs = os.listdir(canned_path + '\\single_file\\' + parent_file_name)
-        X, T, PHI = datos_3d(IMGs, canned_path + '\\single_file\\' + parent_file_name, nivel='si')
-        guardar_txt(datos_path, '\\single_file\\' + parent_file_name + '\\', X=X, T=T, PHI=PHI)
+
+        deteccion(zero_file, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name, recs, sigma)
+        IMGs = os.listdir(canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name)
+        X, T, ZERO = datos_3d(IMGs, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name)
+        guardar_txt(datos_path, '\\fix_me\\' + parent_file_name, ZERO=ZERO)
+
+        deteccion(detection_file, canned_path + '\\fix_me\\' + parent_file_name, recs, sigma)
+        IMGs = os.listdir(canned_path + '\\fix_me\\' + parent_file_name)
+        X, T, PHI = datos_3d(IMGs, canned_path + '\\fix_me\\' + parent_file_name)
+        guardar_txt(datos_path, '\\fix_me\\' + parent_file_name , X=X, T=T, PHI=PHI)
 
 
 def auto_canny(image, sigma):
@@ -245,7 +257,7 @@ def ROI_select(path):
 
 
 # IMAGENES A DATOS
-def phi_t(IMGs, file_o, l, nivel):
+def phi_t(IMGs, file_o, l):
     img = cv2.imread(file_o + '\\' + IMGs[l], 0)
     rows, cols = img.shape
     phi = []
@@ -276,21 +288,24 @@ def phi_t(IMGs, file_o, l, nivel):
     for i in range(cols - 1):
         x.append(i)
     phi.reverse()
-    if nivel == 'si':
-        nivel = phi[0]
-    phi = [i - nivel for i in phi]  # Centrando en el cero
-    return phi, cols, nivel
+    return phi, cols
 
 
-def datos_3d(IMGS, FILE_OUT, nivel):
+def datos_3d(IMGS, FILE_OUT):
     PHI = []
     T = []
     N_imgs = len(IMGS)
-    for i in range(1, N_imgs):
-        phi, cols, nivel = phi_t(IMGS, FILE_OUT, i, nivel)
-        t = [i]
+    if N_imgs == 1:
+        phi, cols = phi_t(IMGS, FILE_OUT, 0)
+        t = [0]
         PHI.append(phi)
         T.append(t)
+    else:
+        for i in range(1, N_imgs):
+            phi, cols = phi_t(IMGS, FILE_OUT, i)
+            t = [i]
+            PHI.append(phi)
+            T.append(t)
     X = np.arange(1, cols)
     Y = np.array(T)
     Z = np.array(PHI)
@@ -298,6 +313,27 @@ def datos_3d(IMGS, FILE_OUT, nivel):
 
 
 # PROCESOS DE DATOS
+
+
+def nivel_mean(PHI, X, T):
+    mean = np.mean(PHI[:, 0])
+    #PHI = filtro_superficie(PHI, 3, 'X')
+    MEAN = mean * np.ones((len(PHI[:, 0]), len(PHI[0, :])))
+    Z = PHI - MEAN
+    mmin = Z[0, 0]
+    mmax = Z[0, -1]
+    pend = mmax - mmin
+    nivels = []
+    for i in range(len(X)):
+        y_i = (pend / len(X)) * X[i]
+        nivels.append(y_i)
+    nivels = np.array(nivels)
+    Z_new = []
+    for i in range(len(T)):
+        Z_new_i = Z[i, :] - nivels
+        Z_new_i = Z_new_i.tolist()
+        Z_new.append(Z_new_i)
+    return Z_new
 
 
 def field_envelopes(X, T, Z, carpeta):

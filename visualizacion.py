@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib.colors import TwoSlopeNorm
 import numpy as np
 from directorios import *
 
@@ -45,6 +46,18 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
         cmap = 'plasma'
     else:
         cmap = kwargs['cmap']
+    if 'vmin' not in kwargs:
+        vmin = 'default'
+    else:
+        vmin = kwargs['vmin']
+    if 'vzero' not in kwargs:
+        vzero = 'default'
+    else:
+        vzero = kwargs['vzero']
+    if 'vmax' not in kwargs:
+        vmax = 'default'
+    else:
+        vmax = kwargs['vmax']
     if tipo == "2D":
         X = args[0]
         Y = args[1]
@@ -82,8 +95,13 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
         X = args[0]
         Y = args[1]
         Z = args[2]
+        if vmin == 'default':
+            vmin = np.amin(Z)
+            vzero = 0
+            vmax = np.amax(Z)
         ax = plt.gca()
-        pcm = ax.pcolormesh(X, Y, Z, vmin=-15, vmax=15, cmap=cmap, shading='auto')
+        norm = TwoSlopeNorm(vmin=vmin, vcenter=vzero, vmax=vmax)
+        pcm = ax.pcolormesh(X, Y, Z, norm=norm, cmap=cmap, shading='auto')
         cbar = plt.colorbar(pcm, shrink=1)
         cbar.set_label(zlabel, rotation=0, fontsize=15)
         plt.xlabel(xlabel, fontsize=15)
