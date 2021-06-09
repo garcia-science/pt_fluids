@@ -60,6 +60,7 @@ def crear_directorios_trabajo():
     main_directory = detection_parent_file + '/mnustes_science'
     return main_directory
 
+
 def guardar_txt(path, file, **kwargs): # upgradear a diccionario para nombre de variables
     if os.path.exists(path + file) == False:
         os.makedirs(path + file)
@@ -152,7 +153,7 @@ def canny_to_data():
     guardar_txt(datos_path, '\\single_file\\' + parent_file_name + '\\', X=X, T=T, PHI=PHI)
 
 
-def deteccion_contornos(tipo, sigma):
+def deteccion_contornos(tipo, sigma, img_format):
     if tipo == 'multiple':
         root = tk.Tk()
         root.withdraw()
@@ -165,8 +166,8 @@ def deteccion_contornos(tipo, sigma):
         detection_files = os.listdir()
         parent_file_name = os.path.basename(detection_parent_file)
         print('Se va a procesar la carpeta ' + str(parent_file_name))
-        canned_path = 'F:\mnustes_science\images\canned'
-        datos_path = 'F:\mnustes_science\experimental_data'
+        canned_path = 'D:\mnustes_science\images\canned'
+        datos_path = 'D:\mnustes_science\experimental_data'
 
         reference_image = filedialog.askopenfilename(parent=root,
                                                         initialdir=detection_files,
@@ -174,7 +175,12 @@ def deteccion_contornos(tipo, sigma):
         recs = ROI_select(reference_image)
         for name in detection_files:
             print('Procesando ' + str(name) + ' (' + str(detection_files.index(name)) + '/' + str(len(detection_files)) + ')')
-            deteccion(detection_parent_file + '\\' + name, canned_path + '\\' + parent_file_name + '\\' + name, recs, sigma)
+            if img_format == 'jpg':
+                deteccion_jpg(detection_parent_file + '\\' + name, canned_path + '\\' + parent_file_name + '\\' + name,
+                              recs, sigma)
+            elif img_format == 'tiff':
+                deteccion_tiff(detection_parent_file + '\\' + name, canned_path + '\\' + parent_file_name + '\\' + name,
+                              recs, sigma)
             IMGs = os.listdir(canned_path + '\\' + parent_file_name + '\\' + name)
             X, T, PHI = datos_3d(IMGs, canned_path + '\\' + parent_file_name + '\\' + name)
             guardar_txt(datos_path, '\\' + parent_file_name + '\\' + name, X=X, T=T, PHI=PHI)
@@ -182,13 +188,13 @@ def deteccion_contornos(tipo, sigma):
         root = tk.Tk()
         root.withdraw()
         zero_file = filedialog.askdirectory(parent=root,
-                                                        initialdir="F:\mnustes_science",
+                                                        initialdir="D:\mnustes_science",
                                                         title='Seleccione la carpeta del cero')
         if not zero_file:
             sys.exit('No se seleccionó ningún archivo')
 
         detection_file = filedialog.askdirectory(parent=root,
-                                                 initialdir="F:\mnustes_science",
+                                                 initialdir="D:\mnustes_science",
                                                  title='Seleccione la carpeta para detección')
         if not detection_file:
             sys.exit('No se seleccionó ningún archivo')
@@ -196,20 +202,24 @@ def deteccion_contornos(tipo, sigma):
         parent_file_name = os.path.basename(detection_file)
         os.chdir(detection_file)
         zero_name = os.path.basename(zero_file)
-        canned_path = 'F:\mnustes_science\images\canned'
-        datos_path = 'F:\mnustes_science\experimental_data'
+        canned_path = 'D:\mnustes_science\images\canned'
+        datos_path = 'D:\mnustes_science\experimental_data'
         print('Se va a procesar la carpeta ' + detection_file)
         reference_image = filedialog.askopenfilename(parent=root,
                                                      initialdir=detection_file,
                                                      title='Seleccionar imagen de referencia')
         recs = ROI_select(reference_image)
-
-        deteccion(zero_file, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name, recs, sigma)
+        if img_format == 'jpg':
+            deteccion_jpg(zero_file, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name, recs, sigma)
+        elif img_format == 'tiff':
+            deteccion_tiff(zero_file, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name, recs, sigma)
         IMGs = os.listdir(canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name)
         X, T, ZERO = datos_3d(IMGs, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name)
         guardar_txt(datos_path, '\\fix_me\\' + parent_file_name, ZERO=ZERO)
-
-        deteccion(detection_file, canned_path + '\\fix_me\\' + parent_file_name, recs, sigma)
+        if img_format == 'jpg':
+            deteccion_jpg(detection_file, canned_path + '\\fix_me\\' + parent_file_name, recs, sigma)
+        elif img_format == 'tiff':
+            deteccion_tiff(detection_file, canned_path + '\\fix_me\\' + parent_file_name, recs, sigma)
         IMGs = os.listdir(canned_path + '\\fix_me\\' + parent_file_name)
         X, T, PHI = datos_3d(IMGs, canned_path + '\\fix_me\\' + parent_file_name)
         guardar_txt(datos_path, '\\fix_me\\' + parent_file_name , X=X, T=T, PHI=PHI)
@@ -223,9 +233,36 @@ def auto_canny(image, sigma):
     return edged
 
 
-def deteccion(file_i, file_o, REC, sigma):
+def deteccion_jpg(file_i, file_o, REC, sigma):
     IMGs = os.listdir(file_i)  # lista de nombres de archivos en la carpeta indicada
     im = cv2.imread(file_i + '/cam000000.jpg')
+    rec = list(REC)
+    imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
+    imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
+    edges = auto_canny(imBlur, sigma)
+    if os.path.exists(file_o) == True:
+        print('Este archivo de CANNY ya existe, ¿desea eliminarlo y continuar? (y/n)')
+        a = str(input())
+        if a == 'y':
+            shutil.rmtree(file_o)
+        elif a == 'n':
+            sys.exit("Proceso terminado, cambie de carpeta")
+
+    os.makedirs(file_o)
+    cv2.imwrite(os.path.join(file_o, IMGs[0]), edges)
+    for i in range(1, len(IMGs)):
+        im = cv2.imread(file_i + '\\' + IMGs[i])
+        imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
+        imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
+        # edges = cv2.Canny(imBlur,10,200)
+        edges = auto_canny(imBlur, sigma)
+        cv2.imwrite(os.path.join(file_o, IMGs[i]), edges)
+    return IMGs
+
+
+def deteccion_tiff(file_i, file_o, REC, sigma):
+    IMGs = os.listdir(file_i)  # lista de nombres de archivos en la carpeta indicada
+    im = cv2.imread(file_i + '/cam000000.tif')
     rec = list(REC)
     imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
     imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
@@ -314,6 +351,27 @@ def datos_3d(IMGS, FILE_OUT):
 
 # PROCESOS DE DATOS
 
+def zero_fix(carpeta, z_limit, mode):
+    if mode == 'zero':
+        [X, T, PHI, zero] = cargar_txt(carpeta, '', X='X', T='T', PHI='PHI', ZERO='ZERO')
+        ZERO = np.ones((len(PHI[:, 0]), len(PHI[0, :])))
+        for i in range(len(T)):
+            ZERO[i, :] = zero
+        Z = PHI - ZERO
+        Z = np.array(Z)
+        guardar_txt(carpeta, '', Z=Z)
+        visualizacion(X, T, Z, tipo='colormap', guardar='si', path=carpeta,
+                      file='', nombre='espaciotiempo_zero', cmap='seismic', vmin=-z_limit, vzero=0, vmax=z_limit)
+        plt.close()
+    elif mode == 'filt':
+        [X, T, PHI] = cargar_txt(carpeta, '', X='X', T='T', PHI='PHI')
+        Z = nivel_mean(PHI, X, T)
+        Z = np.array(Z)
+        guardar_txt(carpeta, '', Z=Z)
+        visualizacion(X, T, Z, tipo='colormap', guardar='si', path=carpeta,
+                      file='', nombre='espaciotiempo_filt', cmap='seismic', vmin=-z_limit, vzero=0, vmax=z_limit)
+        plt.close()
+    return Z
 
 def nivel_mean(PHI, X, T):
     mean = np.mean(PHI[:, 0])
@@ -372,10 +430,10 @@ def field_envelopes(X, T, Z, carpeta):
         A[:, i] = q_u
         B[:, i] = q_l
     guardar_txt(carpeta, '', A=A, B=B)
-    visualizacion(X, T, A, tipo='colormap', guardar='no', path=carpeta,
+    visualizacion(X, T, A, tipo='colormap', guardar='si', path=carpeta,
                   file='', nombre='A_plot', cmap='seismic')
     plt.close()
-    visualizacion(X, T, B, tipo='colormap', guardar='no', path=carpeta,
+    visualizacion(X, T, B, tipo='colormap', guardar='si', path=carpeta,
                   file='', nombre='B_plot', cmap='seismic')
     plt.close()
 
