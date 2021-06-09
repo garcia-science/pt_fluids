@@ -74,4 +74,5 @@ if __name__ == '__main__':
     #visualizacion(X, np.arange(len(D)), D, tipo='3D', guardar='no', path=carpeta,
     #              file='', nombre='strobo_plot_3D', cmap='seismic')
     #plt.scatter(max, np.arange(len(XD)), s=0.5, c='black')
+    guardar_txt(carpeta, '', strobo=XD)
     plt.show()
