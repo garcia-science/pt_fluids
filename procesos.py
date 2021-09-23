@@ -65,7 +65,7 @@ def guardar_txt(path, file, **kwargs): # upgradear a diccionario para nombre de 
     if os.path.exists(path + file) == False:
         os.makedirs(path + file)
     for key, value in kwargs.items():
-        np.savetxt(path + file + '\\' + key +".txt", value)
+        np.savetxt(path + file + '\\' + key + ".txt", value)
 
 
 def cargar_txt(path, file, **kwargs): # upgradear a diccionario para nombre de variables
@@ -153,7 +153,7 @@ def canny_to_data():
     guardar_txt(datos_path, '\\single_file\\' + parent_file_name + '\\', X=X, T=T, PHI=PHI)
 
 
-def deteccion_contornos(tipo, sigma, img_format):
+def deteccion_contornos(tipo, sigma, img_format, **kwargs):
     if tipo == 'multiple':
         root = tk.Tk()
         root.withdraw()
@@ -209,26 +209,36 @@ def deteccion_contornos(tipo, sigma, img_format):
                                                      initialdir=detection_file,
                                                      title='Seleccionar imagen de referencia')
         recs = ROI_select(reference_image)
+        if 'file_name' not in kwargs:
+            file_name = 'default'
+        else:
+            file_name = kwargs['file_name']
+
         if img_format == 'jpg':
-            deteccion_jpg(zero_file, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name, recs, sigma)
+            deteccion_jpg(zero_file, canned_path + '\\' + file_name + '\\' + parent_file_name + '\\' + zero_name, recs, sigma)
         elif img_format == 'tiff':
-            deteccion_tiff(zero_file, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name, recs, sigma)
-        IMGs = os.listdir(canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name)
-        X, T, ZERO = datos_3d(IMGs, canned_path + '\\fix_me\\' + parent_file_name + '\\' + zero_name)
-        guardar_txt(datos_path, '\\fix_me\\' + parent_file_name, ZERO=ZERO)
+            deteccion_tiff(zero_file, canned_path + '\\' + file_name + '\\' + parent_file_name + '\\' + zero_name, recs, sigma)
+        IMGs = os.listdir(canned_path + '\\' + file_name + '\\' + parent_file_name + '\\' + zero_name)
+        X, T, ZERO = datos_3d(IMGs, canned_path + '\\' + file_name + '\\' + parent_file_name + '\\' + zero_name)
+        guardar_txt(datos_path, '\\' + file_name + '\\' + parent_file_name, ZERO=ZERO)
         if img_format == 'jpg':
-            deteccion_jpg(detection_file, canned_path + '\\fix_me\\' + parent_file_name, recs, sigma)
+            deteccion_jpg(detection_file, canned_path + '\\' + file_name + '\\' + parent_file_name, recs, sigma)
         elif img_format == 'tiff':
-            deteccion_tiff(detection_file, canned_path + '\\fix_me\\' + parent_file_name, recs, sigma)
-        IMGs = os.listdir(canned_path + '\\fix_me\\' + parent_file_name)
-        X, T, PHI = datos_3d(IMGs, canned_path + '\\fix_me\\' + parent_file_name)
-        guardar_txt(datos_path, '\\fix_me\\' + parent_file_name , X=X, T=T, PHI=PHI)
+            deteccion_tiff(detection_file, canned_path + '\\' + file_name + '\\' + parent_file_name, recs, sigma)
+        IMGs = os.listdir(canned_path + '\\' + file_name + '\\' + parent_file_name)
+        X, T, PHI = datos_3d(IMGs, canned_path + '\\' + file_name + '\\' + parent_file_name)
+        guardar_txt(datos_path, '\\' + file_name + '\\' + parent_file_name , X=X, T=T, PHI=PHI)
+    return X, T, PHI
 
 
 def auto_canny(image, sigma):
-    v = np.median(image)
-    lower = int(max(0, (1.0 - sigma) * v))
-    upper = int(min(255, (1.0 + sigma) * v))
+    if sigma == 'fixed':
+        lower = 100
+        upper = 200
+    else:
+        v = np.median(image)
+        lower = int(max(0, (1.0 - sigma) * v))
+        upper = int(min(255, (1.0 + sigma) * v))
     edged = cv2.Canny(image, lower, upper)
     return edged
 
@@ -238,8 +248,16 @@ def deteccion_jpg(file_i, file_o, REC, sigma):
     im = cv2.imread(file_i + '/cam000000.jpg')
     rec = list(REC)
     imCrop = im[rec[1]:(rec[1] + rec[3]), rec[0]:(rec[0] + rec[2])]
-    imBlur = cv2.GaussianBlur(imCrop, (3, 3), 0)
-    edges = auto_canny(imBlur, sigma)
+    imBlur = cv2.GaussianBlur(imCrop, (7, 7), 0)
+    ddepth = cv2.CV_16S
+    scale = 1
+    delta = 0
+    grad_x = cv2.Sobel(imBlur, ddepth, 1, 0, ksize=3, scale=scale, delta=delta, borderType = cv2.BORDER_DEFAULT)
+    grad_y = cv2.Sobel(imBlur, ddepth, 0, 1, ksize=3, scale=scale, delta=delta, borderType = cv2.BORDER_DEFAULT)
+    abs_grad_x = cv2.convertScaleAbs(grad_x)
+    abs_grad_y = cv2.convertScaleAbs(grad_y)
+    grad = cv2.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)
+    edges = auto_canny(grad, sigma)
     if os.path.exists(file_o) == True:
         print('Este archivo de CANNY ya existe, ¿desea eliminarlo y continuar? (y/n)')
         a = str(input())
@@ -351,9 +369,15 @@ def datos_3d(IMGS, FILE_OUT):
 
 # PROCESOS DE DATOS
 
-def zero_fix(carpeta, z_limit, mode):
+def zero_fix(z_limit, mode, cargar, *args):
+    datos_path = 'D:\mnustes_science\experimental_data'
+    carpeta = select_directory(datos_path)
     if mode == 'zero':
-        [X, T, PHI, zero] = cargar_txt(carpeta, '', X='X', T='T', PHI='PHI', ZERO='ZERO')
+        if cargar == 'si':
+            [X, T, PHI, zero] = cargar_txt(carpeta, '', X='X', T='T', PHI='PHI', ZERO='ZERO')
+        elif cargar == 'no':
+            zero = cargar_txt(carpeta, '', ZERO='ZERO')
+            [X, T, PHI] = [args[0], args[1], args[2]]
         ZERO = np.ones((len(PHI[:, 0]), len(PHI[0, :])))
         for i in range(len(T)):
             ZERO[i, :] = zero
@@ -361,17 +385,20 @@ def zero_fix(carpeta, z_limit, mode):
         Z = np.array(Z)
         guardar_txt(carpeta, '', Z=Z)
         visualizacion(X, T, Z, tipo='colormap', guardar='si', path=carpeta,
-                      file='', nombre='espaciotiempo_zero', cmap='seismic', vmin=-z_limit, vzero=0, vmax=z_limit)
+                      file='', nombre='espaciotiempo_mean', cmap='seismic', vmin=-z_limit, vzero=0, vmax=z_limit)
         plt.close()
-    elif mode == 'filt':
-        [X, T, PHI] = cargar_txt(carpeta, '', X='X', T='T', PHI='PHI')
+    elif mode == 'mean':
+        if cargar == 'si':
+            [X, T, PHI] = cargar_txt(carpeta, '', X='X', T='T', PHI='PHI')
+        elif cargar == 'no':
+            [X, T, PHI] = [args[0], args[1], args[2]]
         Z = nivel_mean(PHI, X, T)
         Z = np.array(Z)
         guardar_txt(carpeta, '', Z=Z)
         visualizacion(X, T, Z, tipo='colormap', guardar='si', path=carpeta,
                       file='', nombre='espaciotiempo_filt', cmap='seismic', vmin=-z_limit, vzero=0, vmax=z_limit)
         plt.close()
-    return Z
+    return carpeta, X, T, Z
 
 def nivel_mean(PHI, X, T):
     mean = np.mean(PHI[:, 0])
@@ -566,6 +593,11 @@ def gauss_sin(x, a, sigma, L):
     return fun
 
 
+def sin(x, A, w, phase):
+    fun = A * np.sin(w * x + phase)
+    return fun
+
+
 def gauss(x, a, sigma):
     fun = a * np.exp(- 0.5 * ((x / sigma) ** 2))
     return fun
@@ -582,18 +614,19 @@ def fit_gauss_sin(X, Y):
     return fit, popt
 
 
+def fit_sin(X, Y):
+    X = np.array(X)
+    Y = np.array(Y)
+    popt, pcov = curve_fit(sin, X, Y)
+    fit = sin(X, *popt)
+    return fit, popt
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def ajuste_altura(X, T, Z, threshold, n):
+    Z_ajustado = np.ones((len(Z[:, 0]), len(Z[0, :])))
+    for i in range(len(T)):
+        for j in range(len(X)):
+            if Z[i, j] > threshold:
+                Z_ajustado[i, j] = threshold + (Z[i, j] - threshold) * n
+            else:
+                Z_ajustado[i, j] = Z[i, j]
+    return Z_ajustado

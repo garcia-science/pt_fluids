@@ -5,6 +5,7 @@ from visualizacion import *
 
 
 if __name__ == '__main__':
-    datos_path = 'D:\mnustes_science\experimental_data'
-    carpeta = select_directory(datos_path)
-    Z = zero_fix(carpeta, 20, 'filt')
+    carpeta, X, T, Z = zero_fix(20, 'mean', 'si')
+    visualizacion(X, T, Z, tipo='colormap', guardar='si', path=carpeta,
+                 file='', nombre='faraday', cmap='seismic', vmin=-20, vzero=0, vmax=20)
+    plt.show()

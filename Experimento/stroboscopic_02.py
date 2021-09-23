@@ -7,26 +7,27 @@ if __name__ == '__main__':
     datos_path = 'D:\mnustes_science\experimental_data'
     carpeta = select_directory(datos_path)
     [X, T, Z] = cargar_txt(carpeta, '', X='X', T='T', Z='Z')
+    print(len(T))
+    #Z = ajuste_altura(X, T, Z, 4, 0.5)
+    #Z = zero_fix(carpeta, 20, 'zero')
     I = []
     J = []
     A = []
     for i in range(2, len(T) - 2):
-        for j in range(2, len(X) - 2):
-            if np.sign(Z[i, j] - Z[i - 1, j]) == 1 and np.sign(
-                    Z[i - 1, j] - Z[i - 2, j]) == 1 and np.sign(
-                Z[i + 1, j] - Z[i, j]) == -1 and np.sign(Z[i + 2, j] - Z[i + 1, j]) == -1 \
-                    and np.sign(Z[i, j] - Z[i, j - 1]) == 1 and np.sign(
-                Z[i, j - 1] - Z[i, j - 2]) == 1 and np.sign(
-                Z[i, j + 1] - Z[i, j]) == -1 and np.sign(Z[i, j + 2] - Z[i, j + 1]) == -1:
+        for j in range(40, len(X) - 40):
+            if np.sign(Z[i, j] - Z[i - 1, j]) == 1 and np.sign(Z[i + 1, j] - Z[i, j]) == -1\
+                and np.sign(Z[i, j] - Z[i, j - 40]) == 1 and np.sign(Z[i, j] - Z[i, j + 40]) == 1:
                 I.append(i)
                 J.append(j)
                 A.append([i, j])
-
-
     def takeFirst(elem):
         return elem[0]
-    A.sort(key=takeFirst)
-    n = 100
+    #A.sort(key=takeFirst)
+    #visualizacion(X, T, Z, tipo='colormap', guardar='si', path=carpeta,
+    #             file='', nombre='strobo_plot_2_filt2', cmap='seismic', vmin=-20, vzero=0, vmax=20)
+    #plt.plot(J, I, 'o', color='black', markersize=1)
+    #plt.show()
+    n = 200
     XD = []
     max = [0,]
     for k in range(int(len(T) / n)):
@@ -66,11 +67,11 @@ if __name__ == '__main__':
         else:
             XD.append(D_mean)
     XD = np.array(XD)
-    XD = filtro_superficie(XD, 2, 'Y')
+    #XD = filtro_superficie(XD, 2, 'Y')
     print(len(max))
     print(len(XD))
     visualizacion(X, np.arange(len(XD)), XD, tipo='colormap', guardar='si', path=carpeta,
-                          file='', nombre='strobo_plot_2_filt2', cmap='seismic', vmin=-20, vzero=0, vmax=20)
+                          file='', nombre='stroboscopic_old', cmap='seismic', vmin=-20, vzero=0, vmax=20)
     #visualizacion(X, np.arange(len(D)), D, tipo='3D', guardar='no', path=carpeta,
     #              file='', nombre='strobo_plot_3D', cmap='seismic')
     #plt.scatter(max, np.arange(len(XD)), s=0.5, c='black')
