@@ -5,7 +5,7 @@ from procesos import *
 from visualizacion import *
 
 
-main_path = 'F:\mnustes_science'
+main_path = 'D:\mnustes_science'
 
 images_file = main_path + '\images'
 imgs_lab = images_file + '\img_lab'

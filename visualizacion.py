@@ -95,13 +95,17 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
         X = args[0]
         Y = args[1]
         Z = args[2]
-        if vmin == 'default':
+        if vmin == 'default' and np.amax(Z) > 0 > np.amin(Z):
             vmin = np.amin(Z)
             vzero = 0
             vmax = np.amax(Z)
+        else:
+            vmin = np.amin(Z)
+            vmax = np.amax(Z)
+            vzero = (vmin + vmax)/2
         ax = plt.gca()
-        norm = TwoSlopeNorm(vmin=vmin, vcenter=vzero, vmax=vmax)
-        pcm = ax.pcolormesh(X, Y, Z, norm=norm, cmap=cmap, shading='auto')
+        #norm = TwoSlopeNorm(vmin=vmin, vcenter=vzero, vmax=vmax)
+        pcm = ax.pcolormesh(X, Y, Z, cmap=cmap, shading='auto')
         cbar = plt.colorbar(pcm, shrink=1)
         cbar.set_label(zlabel, rotation=0, fontsize=15)
         plt.xlabel(xlabel, fontsize=15)

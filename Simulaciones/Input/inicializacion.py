@@ -3,12 +3,12 @@ import numpy as np
 
 def iniciar_PDE(eq):
     if eq == 'pndls':
-        dx = 0.5
-        dt = 0.001
-        x_min = -50
-        x_max = 50
+        dx = 0.25
+        dt = 0.0001
+        x_min = -40
+        x_max = 40
         l = x_max - x_min
-        t = 600
+        t = 500
     elif eq == 'pndls_exp':
         dx = 0.5
         dt = 0.001

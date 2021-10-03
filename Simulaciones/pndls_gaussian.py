@@ -12,17 +12,19 @@ if __name__ == '__main__':
     fuente = 'gaussian'
     dx, dt, x_min, x_max, L, T = iniciar_PDE(eq)
     Nx, Nt, x_grid, t_grid = grilla(x_min, x_max, T, dx, dt)
+    print(T)
+    print(Nt)
     largo_celda = 480
-    sigma_forcing = L/3
-    fuentes = fuente_pde(x_grid, t_grid, Nx, Nt, sigma=sigma_forcing, dist=0, source='gaussian')
+    sigma_forcing = 16
+    fuentes = fuente_pde(x_grid, Nx, Nt, source='gaussian', sigma=sigma_forcing, dist=0)
 
     for i in range(1):
         for j in range(1):
             alpha = 1
             beta = 1
-            gamma = 0.225
-            mu = 0.15 + 0.1 * i
-            nu = 0.15 + 0.1 * j
+            gamma = 0.84
+            mu = 0.45 + 0.1 * i
+            nu = 1 + 0.1 * j
 
             ####### CONDICIONES INICIALES #########
             U_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.01)
