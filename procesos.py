@@ -14,7 +14,8 @@ from tkinter import *
 import tkinter as tk
 from tkinter import filedialog
 import os
-
+from scipy.stats import linregress
+from visualizacion import *
 
 
 # NOMBRAR, GUARDAR Y CARGAR DATOS
@@ -369,6 +370,28 @@ def datos_3d(IMGS, FILE_OUT):
 
 
 # PROCESOS DE DATOS
+
+def drift_velocity(T_per, X_mm, Z_mm, window_l, window_u, t_inicial, t_final):
+    ###   DEFINIENDO COSAS, VENTANA INICIAL E INTERVALO TEMPORAL A ANALIZAR  ###
+    L_wind = window_u - window_l
+
+    ###   ENCONTRANDO MAXIMOS   ###
+    t_array = []
+    x_array = []
+    for i in range(t_inicial, t_final):
+        j = window_l + np.argmax(Z_mm[i, window_l:window_u])
+        t_array.append(T_per[i])
+        x_array.append(X_mm[j])
+        window_l = int(j - L_wind / 2)
+        window_u = int(j + L_wind / 2)
+    t_np = np.array(t_array)
+    x_np = np.array(x_array)
+
+    ###   REGRESIÓN LINEAL   ###
+    linear_fit = linregress(t_array, x_array)
+    x_fit = linear_fit.slope * t_np + linear_fit.intercept
+    return t_np, x_np, x_fit, linear_fit
+
 
 def zero_fix(z_limit, mode, cargar, *args):
     datos_path = 'D:\mnustes_science\experimental_data'
