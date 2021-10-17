@@ -68,11 +68,12 @@ def fuente_pde(x_grid, Nx, Nt, source, **kwargs):
         fuente = [fuente_init] * Nt
         fuente = np.array(fuente)
     elif source == 'bigaussian':
-        sigma = kwargs['sigma']
+        sigma_1 = kwargs['sigma_1']
+        sigma_2 = kwargs['sigma_2']
         distancia = kwargs['distancia']
         phase = kwargs['fase']
-        fuente_init_1 = np.exp(- (x_grid + distancia / 2) ** 2 / (2 * sigma ** 2))
-        fuente_init_2 = np.cos(phase) * np.exp(- (x_grid - distancia / 2) ** 2 / (2 * sigma ** 2))
+        fuente_init_1 = np.exp(- (x_grid + distancia / 2) ** 2 / (2 * sigma_1 ** 2))
+        fuente_init_2 = np.cos(phase) * np.exp(- (x_grid - distancia / 2) ** 2 / (2 * sigma_2 ** 2))
         fuente_1 = np.array([fuente_init_1] * Nt)
         fuente_2 = np.array([fuente_init_2] * Nt)
         fuente = fuente_1 + fuente_2

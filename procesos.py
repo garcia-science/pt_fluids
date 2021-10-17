@@ -9,6 +9,8 @@ from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 from directorios import *
 from visualizacion import *
+from Simulaciones.Input.inicializacion import *
+from Simulaciones.Recursos.evolucion import *
 from scipy.optimize import curve_fit
 from tkinter import *
 import tkinter as tk
@@ -16,6 +18,7 @@ from tkinter import filedialog
 import os
 from scipy.stats import linregress
 from visualizacion import *
+import time
 
 
 # NOMBRAR, GUARDAR Y CARGAR DATOS
@@ -106,16 +109,20 @@ def nombre_pndls_estandar(**kwargs):
     return nombre
 
 
-def nombre_pndls_bigaussian(gamma, mu, nu, sigma, dist, fase):
-    gamma_st = str(round(float(gamma), 3))
-    mu_st = str(round(float(mu), 3))
-    nu_st = str(round(float(nu), 3))
-    sigma_st = str(round(float(sigma), 1))
-    dist_st = str(round(float(dist), 1))
-    fase_st = str(round(fase / np.pi, 2)) + 'pi'
-    nombre = '\\bigaussian\\mu=' + mu_st + '\\gamma=' + gamma_st + '_nu=' + nu_st +'\\fase=' + fase_st +'\\sigma=' + sigma_st + '\\distancia=' + dist_st
+def nombre_pndls_bigaussian(gamma, mu, nu, sigma1, sigma2, dist, fase):
+    gamma_st = str(truncate(gamma, 3))
+    mu_st = str(truncate(mu, 3))
+    nu_st = str(truncate(nu, 3))
+    sigma1_st = str(truncate(sigma1, 2))
+    sigma2_st = str(truncate(sigma2, 2))
+    dist_st = str(truncate(dist, 2))
+    fase_st = str(truncate(fase / np.pi, 2)) + 'pi'
+    nombre = '\\bigaussian\\mu=' + mu_st + '\\gamma=' + gamma_st + '_nu=' + nu_st +'\\fase=' + fase_st +'\\sigma_1=' + sigma1_st +'\\sigma_2=' + sigma2_st  + '\\distancia=' + dist_st
     return nombre
 
+def truncate(num, n):
+    integer = int(num * (10**n))/(10**n)
+    return float(integer)
 
 # DETECCION
 
@@ -654,3 +661,133 @@ def ajuste_altura(X, T, Z, threshold, n):
             else:
                 Z_ajustado[i, j] = Z[i, j]
     return Z_ajustado
+
+
+######################  SIMULACIONES   ######################
+def iterative_bigaussian_adimensional(iteration_1, iteration_2, alpha, beta, gamma, mu, nu, sigma_forcing_1, sigma_forcing_2, distancia, fase, L, dx, dt, T_final):
+    eq = 'pndls'
+    bordes = 'periodic'
+    fuente = 'bigaussian'
+    iteration_1_array = np.arange(0, iteration_1[2] - iteration_1[1], iteration_1[3])
+    iteration_1_list = list(iteration_1_array)
+    iteration_2_array = np.arange(0, iteration_2[2] - iteration_2[1], iteration_2[3])
+    iteration_2_list = list(iteration_2_array)
+    for i in iteration_1_list:
+        print(iteration_1_list)
+        if iteration_1[0] == 'gamma':
+            gamma = gamma + i
+        elif iteration_1[0] == 'mu':
+            mu = mu + i
+        elif iteration_1[0] == 'nu':
+            nu = nu + i
+        elif iteration_1[0] == 'sigma_forcing_1':
+            sigma_forcing_1 = sigma_forcing_1 + i
+        elif iteration_1[0] == 'sigma_forcing_2':
+            sigma_forcing_2 = sigma_forcing_2 + i
+        elif iteration_1[0] == 'sigma_forcing':
+            sigma_forcing_1 = sigma_forcing_1 + i
+            sigma_forcing_2 = sigma_forcing_2 + i
+        elif iteration_1[0] == 'distancia':
+            distancia = distancia + i
+        elif iteration_1[0] == 'fase':
+            fase = fase + i
+        for j in iteration_2_list:
+            print(iteration_2_list)
+            print(j)
+            if iteration_2[0] == 'gamma':
+                gamma = gamma + j
+            elif iteration_2[0] == 'mu':
+                mu = mu + j
+            elif iteration_2[0] == 'nu':
+                nu = nu + j
+            elif iteration_2[0] == 'sigma_forcing_1':
+                sigma_forcing_1 = sigma_forcing_1 + j
+            elif iteration_2[0] == 'sigma_forcing_2':
+                sigma_forcing_2 = sigma_forcing_2 + j
+            elif iteration_2[0] == 'sigma_forcing':
+                sigma_forcing_1 = sigma_forcing_1 + j
+                sigma_forcing_2 = sigma_forcing_2 + j
+            elif iteration_2[0] == 'distancia':
+                distancia = distancia + j
+            elif iteration_2[0] == 'fase':
+                fase = fase + j
+            time_init = time.time()
+            [xmin, xmax, dx] = [-L / 2, L / 2, dx]
+            [tmin, tmax, dt] = [0, T_final, dt]
+            x_grid = np.arange(xmin, xmax + dx, dx)
+            t_grid = np.arange(tmin, tmax + dt, dt)
+            T = tmax
+            Nx = x_grid.shape[0]
+            Nt = t_grid.shape[0]
+            fuentes = fuente_pde(x_grid, Nx, Nt, source=fuente, sigma_1=sigma_forcing_1, sigma_2=sigma_forcing_2, distancia=distancia,
+                                 fase=fase)
+            fuente_ligera, t_ligero = campos_ligeros([fuentes, fuentes], 100, Nt, Nx, T)
+
+            ####### CONDICIONES INICIALES #########
+            U_init = condiciones_iniciales_pde('ones', x_grid, Nx, L, 0.01)
+            V_init = condiciones_iniciales_pde('zero', x_grid, Nx, L, 0.01)
+            campos = campos_iniciales(Nt, Nx, [U_init, V_init])
+
+            ####### DINAMICA #########
+            campos_finales = RK4_PDE(eq, campos, bordes, dx, dt, Nx, Nt, control=1, alpha=alpha, beta=beta,
+                                     gamma=gamma,
+                                     mu=mu, nu=nu, forzamiento=fuentes)
+            time_fin = time.time()
+            print(str((time_fin - time_init) / 60) + ' minutos')
+
+            ####### DATOS #########
+            campo_ligeros, t_ligero = campos_ligeros(campos_finales, 100, Nt, Nx, T)
+            modulo = np.sqrt(campo_ligeros[0] ** 2 + campo_ligeros[1] ** 2)
+            arg = np.arctan2(campo_ligeros[0], campo_ligeros[1])
+            np.savetxt('mod.csv', modulo, delimiter=',')
+            np.savetxt('arg.csv', arg, delimiter=',')
+            np.savetxt('t.csv', t_ligero, delimiter=',')
+            np.savetxt('x.csv', x_grid, delimiter=',')
+            sim_file = nombre_pndls_bigaussian(gamma=gamma, mu=mu, nu=nu, sigma1=sigma_forcing_1, sigma2=sigma_forcing_2, dist=distancia,
+                                               fase=fase)
+            if os.path.exists(simulation_data_path + sim_file):
+                shutil.rmtree(simulation_data_path + sim_file)
+            os.makedirs(simulation_data_path + sim_file)
+            guardar_txt(simulation_data_path, sim_file, X=x_grid, T=t_ligero, real=campo_ligeros[0],
+                        img=campo_ligeros[1], mod=modulo, arg=arg, forcing=fuente_ligera[0][0, :])
+
+            ####### VISUALIZACION #########
+            plt.plot(x_grid, fuente_ligera[0][0, :])
+            plt.savefig(simulation_data_path + sim_file + '\\' + 'forcing')
+            plt.close()
+            visualizacion(x_grid, t_ligero, modulo, tipo='colormap', guardar='si', path=simulation_data_path,
+                          file=sim_file, nombre='mod', xlabel='$x$', ylabel='$t$', zlabel='$|\psi(t, x)|$')
+            if iteration_2[0] == 'gamma':
+                gamma = iteration_2[1]
+            elif iteration_2[0] == 'mu':
+                mu = iteration_2[1]
+            elif iteration_2[0] == 'nu':
+                nu = iteration_2[1]
+            elif iteration_2[0] == 'sigma_forcing_1':
+                sigma_forcing_1 = iteration_2[1]
+            elif iteration_2[0] == 'sigma_forcing_2':
+                sigma_forcing_2 = iteration_2[1]
+            elif iteration_2[0] == 'sigma_forcing':
+                sigma_forcing_1 = iteration_2[1]
+                sigma_forcing_2 = iteration_2[1]
+            elif iteration_2[0] == 'distancia':
+                distancia = iteration_2[1]
+            elif iteration_2[0] == 'fase':
+                fase = iteration_2[1]
+        if iteration_1[0] == 'gamma':
+            gamma = iteration_1[1]
+        elif iteration_1[0] == 'mu':
+            mu = iteration_1[1]
+        elif iteration_1[0] == 'nu':
+            nu = iteration_1[1]
+        elif iteration_1[0] == 'sigma_forcing_1':
+            sigma_forcing_1 = iteration_1[1]
+        elif iteration_1[0] == 'sigma_forcing_2':
+            sigma_forcing_2 = iteration_1[1]
+        elif iteration_1[0] == 'sigma_forcing':
+            sigma_forcing_1 = iteration_1[1]
+            sigma_forcing_2 = iteration_1[1]
+        elif iteration_1[0] == 'distancia':
+            distancia = iteration_1[1]
+        elif iteration_1[0] == 'fase':
+            fase = iteration_1[1]

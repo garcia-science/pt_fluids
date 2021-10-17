@@ -107,7 +107,7 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
         norm = TwoSlopeNorm(vmin=vmin, vcenter=vzero, vmax=vmax)
         pcm = ax.pcolormesh(X, Y, Z, cmap=cmap, norm=norm, shading='auto')
         cbar = plt.colorbar(pcm, shrink=1)
-        cbar.set_label(zlabel, rotation=0, fontsize=15)
+        cbar.set_label(zlabel, rotation=90, fontsize=15)
         plt.xlabel(xlabel, fontsize=15)
         plt.ylabel(ylabel, fontsize=15)
         plt.title(titulo)
