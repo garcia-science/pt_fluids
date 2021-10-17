@@ -3,8 +3,8 @@ from procesos import *
 from visualizacion import *
 
 if __name__ == '__main__':
-    [X, T, PHI] = cargar_txt(experimental_data_file, data_file, X='X', T='T', PHI='PHI')
-    img_file = 'E:\mnustes_science\images\img_lab\modo_4.1\\f=14.61_a=3.8'
+    [X, T, PHI] = cargar_txt(experimental_data_file, '\\07-05-2021\\f=15.22_a=6.0', X='X', T='T', PHI='PHI')
+    img_file = 'E:\mnustes_science\images\img_lab\\07-05-2021\\f=15.22_a=6.0'
 
     ########## PROCESOS Y OTROS #########
     X = np.array([i - X[-1] / 2 for i in X])
@@ -20,6 +20,6 @@ if __name__ == '__main__':
     gaussian_fit = gauss(X, parametros[0], parametros[1])
     visualizacion(X, [PHI_std, sinegauss_fit, gaussian_fit], ['r', 'grey', 'black'], ['-', ':', '--'],
                   tipo="2D_multiple", guardar='si',
-                  path=experimental_data_file, file=data_file + '\datos_procesados',
+                  path=experimental_data_file, file='\\07-05-2021\\f=15.22_a=6.0\\datos_procesados',
                   nombre='plot')
-    guardar_txt(experimental_data_file, data_file + '\datos_procesados', X=X, parametros=parametros, PHI_std=PHI_std, sinegauss_fit=sinegauss_fit, gaussian_fit=gaussian_fit)
+    guardar_txt(experimental_data_file, '\\07-05-2021\\f=15.22_a=6.0\\datos_procesados', X=X, parametros=parametros, PHI_std=PHI_std, sinegauss_fit=sinegauss_fit, gaussian_fit=gaussian_fit)

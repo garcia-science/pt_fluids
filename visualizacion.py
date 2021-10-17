@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib.colors import TwoSlopeNorm
 import numpy as np
 from directorios import *
 
@@ -45,6 +46,18 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
         cmap = 'plasma'
     else:
         cmap = kwargs['cmap']
+    if 'vmin' not in kwargs:
+        vmin = 'default'
+    else:
+        vmin = kwargs['vmin']
+    if 'vzero' not in kwargs:
+        vzero = 'default'
+    else:
+        vzero = kwargs['vzero']
+    if 'vmax' not in kwargs:
+        vmax = 'default'
+    else:
+        vmax = kwargs['vmax']
     if tipo == "2D":
         X = args[0]
         Y = args[1]
@@ -82,10 +95,19 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
         X = args[0]
         Y = args[1]
         Z = args[2]
+        if vmin == 'default' and np.amax(Z) > 0 > np.amin(Z):
+            vmin = np.amin(Z)
+            vzero = 0
+            vmax = np.amax(Z)
+        else:
+            vmin = np.amin(Z)
+            vmax = np.amax(Z)
+            vzero = (vmin + vmax)/2
         ax = plt.gca()
-        pcm = ax.pcolormesh(X, Y, Z, vmin=np.min(Z), vmax=np.max(Z), cmap=cmap, shading='auto')
+        norm = TwoSlopeNorm(vmin=vmin, vcenter=vzero, vmax=vmax)
+        pcm = ax.pcolormesh(X, Y, Z, cmap=cmap, norm=norm, shading='auto')
         cbar = plt.colorbar(pcm, shrink=1)
-        cbar.set_label(zlabel, rotation=0, fontsize=15)
+        cbar.set_label(zlabel, rotation=90, fontsize=15)
         plt.xlabel(xlabel, fontsize=15)
         plt.ylabel(ylabel, fontsize=15)
         plt.title(titulo)

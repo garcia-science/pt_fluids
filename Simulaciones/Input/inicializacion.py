@@ -3,12 +3,19 @@ import numpy as np
 
 def iniciar_PDE(eq):
     if eq == 'pndls':
+        dx = 0.25
+        dt = 0.0001
+        x_min = -40
+        x_max = 40
+        l = x_max - x_min
+        t = 500
+    elif eq == 'pndls_exp':
         dx = 0.5
         dt = 0.001
-        x_min = -100
-        x_max = 100
+        x_min = -240
+        x_max = 240
         l = x_max - x_min
-        t = 1
+        t = 5
     elif eq == 'wave':
         dx = 0.5
         dt = 0.0005
@@ -36,7 +43,7 @@ def iniciar_PDE(eq):
 def grilla(x_min, x_max, t, dx, dt):
     Nx_pasos = (x_max - x_min) / dx
     Nt_pasos = t / dt
-    print('Hay' + str(Nx_pasos) + ' pasos espaciales y ' + str(Nt_pasos) + ' pasos temporales')
+    print('Hay ' + str(Nx_pasos) + ' pasos espaciales y ' + str(Nt_pasos) + ' pasos temporales')
     x_grid = np.linspace(x_min, x_max, int(Nx_pasos))
     t_grid = np.linspace(0, t, int(Nt_pasos))
     Nx_pasos = int(Nx_pasos)
@@ -61,11 +68,12 @@ def fuente_pde(x_grid, Nx, Nt, source, **kwargs):
         fuente = [fuente_init] * Nt
         fuente = np.array(fuente)
     elif source == 'bigaussian':
-        sigma = kwargs['sigma']
+        sigma_1 = kwargs['sigma_1']
+        sigma_2 = kwargs['sigma_2']
         distancia = kwargs['distancia']
         phase = kwargs['fase']
-        fuente_init_1 = np.exp(- (x_grid + distancia / 2) ** 2 / (2 * sigma ** 2))
-        fuente_init_2 = np.cos(phase) * np.exp(- (x_grid - distancia / 2) ** 2 / (2 * sigma ** 2))
+        fuente_init_1 = np.exp(- (x_grid + distancia / 2) ** 2 / (2 * sigma_1 ** 2))
+        fuente_init_2 = np.cos(phase) * np.exp(- (x_grid - distancia / 2) ** 2 / (2 * sigma_2 ** 2))
         fuente_1 = np.array([fuente_init_1] * Nt)
         fuente_2 = np.array([fuente_init_2] * Nt)
         fuente = fuente_1 + fuente_2
