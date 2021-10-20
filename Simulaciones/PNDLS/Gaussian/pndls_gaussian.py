@@ -8,18 +8,16 @@ from Simulaciones.Recursos.evolucion import *
 if __name__ == '__main__':
     eq = 'pndls'
     bordes = 'periodic'
-    fuente = 'bigaussian'
+    fuente = 'gaussian'
     ################---ADIMENSIONAL---#####################
     L = 200
-    sigma_forcing = 3
+    sigma_forcing = 6
     alpha = 1
     beta = 1
-    gamma = 0.28
+    gamma = 0.85
     mu = 0.1
     nu = 0.32
 
-    distancia = 20
-    fase = np.pi
     ################---DIMENSIONAL---#####################
     #unidad = 0.1
     #g = 9790 * unidad
@@ -57,10 +55,13 @@ if __name__ == '__main__':
     T = tmax
     Nx = x_grid.shape[0]
     Nt = t_grid.shape[0]
-    fuentes = fuente_pde(x_grid, Nx, Nt, source=fuente, sigma=sigma_forcing, distancia=distancia, fase=fase)
+    fuentes = fuente_pde(x_grid, Nx, Nt, source=fuente, sigma=sigma_forcing)
     fuente_ligera, t_ligero = campos_ligeros([fuentes, fuentes], 100, Nt, Nx, T)
 
-    plt.plot(x_grid, fuente_ligera[0][0, :])
+    plt.plot(x_grid, gamma*fuente_ligera[0][0, :])
+    plt.xlim(x_grid[0], x_grid[-1])
+    plt.xlabel('$x$')
+    plt.ylabel('$\gamma (x)$')
     plt.show()
 
     ####### CONDICIONES INICIALES #########
@@ -74,19 +75,25 @@ if __name__ == '__main__':
     time_fin = time.time()
     print(str((time_fin - time_init) / 60) + ' minutos')
     ####### DATOS #########
-    campo_ligeros, t_ligero = campos_ligeros(campos_finales, 100, Nt, Nx, T)
+    campo_ligeros, t_ligero = campos_ligeros(campos_finales, 100, Nt - 1, Nx, T)
     modulo = np.sqrt(campo_ligeros[0] ** 2 + campo_ligeros[1] ** 2)
     arg = np.arctan2(campo_ligeros[0], campo_ligeros[1])
     np.savetxt('mod.csv', modulo, delimiter=',')
     np.savetxt('arg.csv', arg, delimiter=',')
     np.savetxt('t.csv', t_ligero, delimiter=',')
     np.savetxt('x.csv', x_grid, delimiter=',')
-    sim_file = nombre_pndls_bigaussian(gamma=gamma, mu=mu, nu=nu, sigma=sigma_forcing, dist=distancia, fase=fase)
+    sim_file = nombre_pndls_estandar(gamma=gamma, mu=mu, nu=nu, L=L, sigma=sigma_forcing)
     if os.path.exists(simulation_data_path + sim_file):
         shutil.rmtree(simulation_data_path + sim_file)
     os.makedirs(simulation_data_path + sim_file)
     guardar_txt(simulation_data_path, sim_file, X=x_grid, T=t_ligero, real=campo_ligeros[0],
                 img=campo_ligeros[1], mod=modulo, arg=arg)
     ####### VISUALIZACION #########
+    plt.plot(x_grid, gamma * fuente_ligera[0][0, :])
+    plt.xlim(x_grid[0], x_grid[-1])
+    plt.xlabel('$x$')
+    plt.ylabel('$\gamma (x)$')
+    plt.savefig(simulation_data_path + sim_file + '\\' + 'forcing')
+    plt.close()
     visualizacion(x_grid, t_ligero, modulo, tipo='colormap', guardar='si', path=simulation_data_path,
                   file=sim_file, nombre='plot', xlabel='$x$', ylabel='$t$', zlabel='$|\psi(t, x)|$')
