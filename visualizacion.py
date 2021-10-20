@@ -13,11 +13,11 @@ def visualizacion(*args, tipo, guardar, path, file, nombre, **kwargs):
     if 'ylabel' not in kwargs:
         ylabel = ' '
     else:
-        ylabel = kwargs['xlabel']
+        ylabel = kwargs['ylabel']
     if 'zlabel' not in kwargs:
         zlabel = ' '
     else:
-        zlabel = kwargs['xlabel']
+        zlabel = kwargs['zlabel']
     if 'x_scale' not in kwargs:
         xscale = 'linear'
     else:

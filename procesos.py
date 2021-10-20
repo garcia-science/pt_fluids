@@ -83,19 +83,25 @@ def cargar_txt(path, file, **kwargs): # upgradear a diccionario para nombre de v
 
 def nombre_pndls_estandar(**kwargs):
     mu = kwargs['mu']
+    L = kwargs['L']
+    L_name = str(L)
     if 'n' and 'forcing_amp' and 'forcing_freq' and 'profundidad' not in kwargs:
+        sigma = kwargs['sigma']
         nu = kwargs['nu']
         gamma = kwargs['gamma']
+        sigma_st = str(round(float(mu), 3))
         mu_st = str(round(float(mu), 3))
         gamma_st = str(round(float(gamma), 3))
         nu_st = str(round(float(nu), 3))
+        sigma_splited = sigma_st.split('.')
         mu_splited = mu_st.split('.')
         gamma_splited = gamma_st.split('.')
         nu_splited = nu_st.split('.')
+        sigma_name = sigma_splited[0] + sigma_splited[1]
         mu_name = mu_splited[0] + mu_splited[1]
         gamma_name = gamma_splited[0] + gamma_splited[1]
         nu_name = nu_splited[0] + nu_splited[1]
-        nombre = '\\gaussian\mu=' + mu_name + '\gamma=' + gamma_name + '_nu=' + nu_name
+        nombre = '\\gaussian\mu=' + mu_name + '\gamma=' + gamma_name + '_nu=' + nu_name + '\L=' + L_name + '\sigma=' + sigma_name
     elif 'alpha' and 'beta' and 'nu' and 'gamma' not in kwargs:
         d = kwargs['profundidad']
         n = kwargs['n']
